@@ -1,0 +1,4 @@
+# Netlify/Vercel/Fleek _redirects example
+# أضف قواعد إعادة التوجيه حسب الحاجة
+# مثال: إعادة توجيه جميع المسارات إلى index.html (SPA)
+/*    /index.html   200
