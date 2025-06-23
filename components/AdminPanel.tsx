@@ -15,7 +15,12 @@ import NotificationBox from './NotificationBox';
 import ExportCSV from './ExportCSV';
 import VoiceSearch from './VoiceSearch';
 import SmartChat from './SmartChat';
-import AnalyticsBox from './AnalyticsBox';
+// import AnalyticsBox from './AnalyticsBox';
+import GlassSidebarDeep from './GlassSidebarDeep';
+import EmployeesPanel from './EmployeesPanel';
+import UnitsPanel from './UnitsPanel';
+import DevelopersPanel from './DevelopersPanel';
+import MarketersPanel from './MarketersPanel';
 
 console.log('=== AdminPanel.tsx Mounted ===');
 let debugStep = 'AdminPanel mounted';
@@ -28,6 +33,7 @@ const TABS = [
   { key: 'الإعدادات', label: 'الإعدادات' },
   { key: 'من نحن', label: 'من نحن' },
   { key: 'الشركاء', label: 'الشركاء' },
+  { key: 'marketers', label: 'الماركين' },
 ];
 
 function usePersistedState<T>(key: string, initial: T) {
@@ -44,7 +50,7 @@ function usePersistedState<T>(key: string, initial: T) {
 }
 
 const AdminPanel: React.FC = () => {
-  const [tab, setTab] = useState('الوحدات');
+  const [section, setSection] = useState('dashboard');
   // جلب المستخدم الحالي من localStorage
   const [currentUser, setCurrentUser] = useState<any>(null);
   useEffect(() => {
@@ -622,351 +628,20 @@ const AdminPanel: React.FC = () => {
   const allTabs = [...TABS, { key: 'التواصل', label: 'روابط التواصل' }];
 
   return (
-    <div>
-      {/* لوحة الإحصائيات */}
-      <DashboardStats />
-      {/* نظام إدارة العملاء (CRM) */}
-      <CRM />
-      {/* نظام التقييمات والمراجعات */}
-      <Reviews />
-      {/* بيانات تجريبية للموظفين */}
-      <DemoEmployees />
-      {/* الإشعارات */}
-      <NotificationBox />
-      {/* مقارنة العقارات */}
-      <CompareUnits />
-      {/* تصدير البيانات */}
-      <ExportCSV data={[]} filename="export.csv" />
-      {/* البحث الصوتي */}
-      <VoiceSearch onResult={(q: string) => alert('بحث صوتي: ' + q)} />
-      {/* الدردشة الذكية */}
-      <SmartChat />
-      {/* التحليلات المتقدمة */}
-      <AnalyticsBox />
-      <div style={{display:'flex',gap:16,margin:'24px 0'}}>
-        {TABS.map(t => (
-          <button key={t.key} onClick={()=>setTab(t.key)} style={{
-            background: tab===t.key?'#00bcd4':'#fff',
-            color: tab===t.key?'#fff':'#00bcd4',
-            border:'1px solid #00bcd4',
-            borderRadius:8,padding:'8px 20px',fontWeight:'bold',fontSize:18,cursor:'pointer'
-          }}>{t.label}</button>
-        ))}
-      </div>
-      {/* الشريط الجانبي */}
-      <div style={{minWidth:180,background:'#f5f7fa',borderRadius:16,padding:'24px 0',boxShadow:'0 2px 12px #e0e0e0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-        <div style={{fontWeight:'bold',fontSize:22,color:'#00bcd4',marginBottom:16}}>لوحة التحكم</div>
-        {allTabs.filter(t => allowedTabs.includes(t.key) || t.key==='التواصل').map(t => (
-          <button key={t.key} onClick={()=>setTab(t.key)} style={{
-            background:tab===t.key?'#00bcd4':'#fff',
-            color:tab===t.key?'#fff':'#222',
-            border:'none',
-            borderRadius:8,
-            padding:'10px 18px',
-            fontWeight:'bold',
-            fontSize:17,
-            cursor:'pointer',
-            width:'90%',
-            display:'flex',
-            alignItems:'center',
-            gap:10,
-            boxShadow:tab===t.key?'0 2px 8px #b2ebf2':'none',
-            transition:'all 0.2s'
-          }}>{t.label}</button>
-        ))}
-        {currentUser && (
-          <div style={{marginTop:24,color:'#888',fontSize:15}}>
-            مرحباً، {currentUser.name} <br/>({currentUser.role})
-            <button onClick={()=>{localStorage.removeItem('admin-current-user');window.location.reload();}} style={{marginTop:8,background:'#e53935',color:'#fff',border:'none',borderRadius:6,padding:'4px 14px',fontWeight:'bold',cursor:'pointer'}}>تسجيل خروج</button>
-          </div>
-        )}
-      </div>
-      {/* محتوى لوحة التحكم */}
-      <div style={{background:'#fff',borderRadius:16,padding:24,boxShadow:'0 2px 16px #e0e0e0',flex:1,minWidth:320}}>
-        <div style={{fontSize:22,color:'#00bcd4',fontWeight:'bold',marginBottom:16}}>{tab}</div>
-        {success && <div style={{color:'#388e3c',marginBottom:12}}>{success}</div>}
-        {error && <div style={{color:'red',marginBottom:12}}>{error}</div>}
-        {/* الوحدات */}
-        {tab==='الوحدات' && allowedTabs.includes('الوحدات') && (
-          <div>
-            <form onSubmit={handleAddUnit} style={{marginBottom:24,display:'flex',flexWrap:'wrap',gap:8}}>
-              <input value={unitForm.title} onChange={e=>setUnitForm(f=>({...f,title:e.target.value}))} placeholder="اسم الوحدة" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.type} onChange={e=>setUnitForm(f=>({...f,type:e.target.value}))} placeholder="نوع الوحدة" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.details} onChange={e=>setUnitForm(f=>({...f,details:e.target.value}))} placeholder="تفاصيل" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.area} onChange={e=>setUnitForm(f=>({...f,area:e.target.value}))} placeholder="المساحة (م²)" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.rooms} onChange={e=>setUnitForm(f=>({...f,rooms:e.target.value}))} placeholder="عدد الغرف" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.bathrooms} onChange={e=>setUnitForm(f=>({...f,bathrooms:e.target.value}))} placeholder="عدد الحمامات" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={unitForm.kitchens} onChange={e=>setUnitForm(f=>({...f,kitchens:e.target.value}))} placeholder="عدد المطابخ" style={{margin:4,padding:8,borderRadius:8}} />
-              <label style={{margin:4}}><input type="checkbox" checked={unitForm.hasGarden} onChange={e=>setUnitForm(f=>({...f,hasGarden:e.target.checked}))}/> حديقة</label>
-              <label style={{margin:4}}><input type="checkbox" checked={unitForm.hasPool} onChange={e=>setUnitForm(f=>({...f,hasPool:e.target.checked}))}/> حمام سباحة</label>
-              <input value={unitForm.phone} onChange={e=>setUnitForm(f=>({...f,phone:e.target.value}))} placeholder="رقم الاتصال" style={{margin:4,padding:8,borderRadius:8}} />
-              <input value={unitForm.whatsapp} onChange={e=>setUnitForm(f=>({...f,whatsapp:e.target.value}))} placeholder="رقم واتساب" style={{margin:4,padding:8,borderRadius:8}} />
-              <input value={unitForm.lat} onChange={e=>setUnitForm(f=>({...f,lat:e.target.value}))} placeholder="خط العرض (lat)" style={{margin:4,padding:8,borderRadius:8}} />
-              <input value={unitForm.lng} onChange={e=>setUnitForm(f=>({...f,lng:e.target.value}))} placeholder="خط الطول (lng)" style={{margin:4,padding:8,borderRadius:8}} />
-              <input type="file" multiple accept="image/*" onChange={e=>setUnitForm(f=>({...f,images:Array.from(e.target.files||[])}))} style={{margin:4}} />
-              <input value={unitForm.vrUrl} onChange={e=>setUnitForm(f=>({...f,vrUrl:e.target.value}))} placeholder="رابط VR أو 3D" style={{margin:4,padding:8,borderRadius:8}} />
-              <input value={unitForm.panoramaUrl} onChange={e=>setUnitForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط صورة بانوراما" style={{margin:4,padding:8,borderRadius:8}} />
-              <input value={unitForm.model3dUrl} onChange={e=>setUnitForm(f=>({...f,model3dUrl:e.target.value}))} placeholder="رابط نموذج 3D" style={{margin:4,padding:8,borderRadius:8}} />
-              {/* حقل المطور */}
-              <div style={{display:'flex',alignItems:'center',gap:8,width:'100%'}}>
-                <select value={unitForm.developerId} onChange={e=>{
-                  if(e.target.value==='add_new_dev') setShowAddDev(true);
-                  else setUnitForm(f=>({...f,developerId:e.target.value}));
-                }} style={{margin:4,padding:8,borderRadius:8,flex:1}} required>
-                  <option value="">اختر المطور</option>
-                  {devs.length===0 && developers.map((d:any)=>(
-                    <option key={d.id} value={d.id}>{d.name} (إضافة سريعة)</option>
-                  ))}
-                  {devs.map((d:any)=>(<option key={d.id} value={d.id}>{d.name}</option>))}
-                  <option value="add_new_dev">+ إضافة مطور جديد...</option>
-                </select>
-                {devs.length===0 && developers.map((d:any)=>(
-                  <button key={d.id} type="button" onClick={()=>handleQuickAddDev(d)} style={{fontSize:12,background:'#eee',border:'none',borderRadius:6,padding:'4px 8px',marginLeft:2}}>إضافة {d.name}</button>
-                ))}
-              </div>
-              {showAddDev && (
-                <form onSubmit={handleAddDevInline} style={{display:'flex',gap:8,margin:'8px 0'}}>
-                  <input value={devForm.name} onChange={e=>setDevForm(f=>({...f,name:e.target.value}))} placeholder="اسم المطور" style={{padding:6,borderRadius:6}} required />
-                  <input value={devForm.country} onChange={e=>setDevForm(f=>({...f,country:e.target.value}))} placeholder="الدولة" style={{padding:6,borderRadius:6}} required />
-                  <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:6,padding:'6px 16px',fontWeight:'bold'}}>حفظ المطور</button>
-                  <button type="button" onClick={()=>setShowAddDev(false)} style={{background:'#eee',border:'none',borderRadius:6,padding:'6px 10px',fontWeight:'bold'}}>إلغاء</button>
-                </form>
-              )}
-              {/* حقل الكمباوند */}
-              <div style={{display:'flex',alignItems:'center',gap:8,width:'100%'}}>
-                <select value={unitForm.compound} onChange={e=>{
-                  if(e.target.value==='add_new_compound') setShowAddCompound(true);
-                  else setUnitForm(f=>({...f,compound:e.target.value}));
-                }} style={{margin:4,padding:8,borderRadius:8,flex:1}}>
-                  <option value="">اختر الكمباوند (اختياري)</option>
-                  {compoundsList.length===0 && compounds.map((c:any)=>(
-                    <option key={c.id} value={c.name}>{c.name} (إضافة سريعة)</option>
-                  ))}
-                  {compoundsList.map((c:any)=>(<option key={c.id} value={c.name}>{c.name}</option>))}
-                  <option value="add_new_compound">+ إضافة كمباوند جديد...</option>
-                </select>
-                {compoundsList.length===0 && compounds.map((c:any)=>(
-                  <button key={c.id} type="button" onClick={()=>handleQuickAddCompound(c)} style={{fontSize:12,background:'#eee',border:'none',borderRadius:6,padding:'4px 8px',marginLeft:2}}>إضافة {c.name}</button>
-                ))}
-              </div>
-              {showAddCompound && (
-                <form onSubmit={handleAddCompoundInline} style={{display:'flex',gap:8,margin:'8px 0'}}>
-                  <input value={compoundForm.name} onChange={e=>setCompoundForm(f=>({...f,name:e.target.value}))} placeholder="اسم الكمباوند" style={{padding:6,borderRadius:6}} required />
-                  <input value={compoundForm.city} onChange={e=>setCompoundForm(f=>({...f,city:e.target.value}))} placeholder="المدينة" style={{padding:6,borderRadius:6}} required />
-                  <input value={compoundForm.country} onChange={e=>setCompoundForm(f=>({...f,country:e.target.value}))} placeholder="الدولة" style={{padding:6,borderRadius:6}} required />
-                  <input value={compoundForm.developer} onChange={e=>setCompoundForm(f=>({...f,developer:e.target.value}))} placeholder="المطور" style={{padding:6,borderRadius:6}} />
-                  <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:6,padding:'6px 16px',fontWeight:'bold'}}>حفظ الكمباوند</button>
-                  <button type="button" onClick={()=>setShowAddCompound(false)} style={{background:'#eee',border:'none',borderRadius:6,padding:'6px 10px',fontWeight:'bold'}}>إلغاء</button>
-                </form>
-              )}
-              <input value={unitForm.price} onChange={e=>setUnitForm(f=>({...f,price:e.target.value}))} placeholder="السعر بالجنيه أو العملة" style={{margin:4,padding:8,borderRadius:8}} required />
-              <select value={unitForm.paymentType} onChange={e=>setUnitForm(f=>({...f,paymentType:e.target.value}))} style={{margin:4,padding:8,borderRadius:8}} required>
-                <option value="">نوع الدفع</option>
-                <option value="كاش">كاش</option>
-                <option value="تقسيط">تقسيط</option>
-              </select>
-              <select value={unitForm.finance} onChange={e=>setUnitForm(f=>({...f,finance:e.target.value}))} style={{margin:4,padding:8,borderRadius:8}} required>
-                <option value="">تمويل عقاري؟</option>
-                <option value="تمويل عقاري">تمويل عقاري</option>
-                <option value="بدون تمويل">بدون تمويل</option>
-              </select>
-              <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold',margin:4}} disabled={loading}>إضافة وحدة</button>
-            </form>
-            {/* عرض الوحدات */}
-            <div style={{display:'flex',flexWrap:'wrap',gap:16}}>
-              {units.map((u,i)=>(
-                <div key={u.id} style={{border:'1px solid #eee',borderRadius:12,padding:12,minWidth:220,maxWidth:260,position:'relative'}}>
-                  <b>{u.title}</b>
-                  <div>النوع: {u.type}</div>
-                  <div>المساحة: {u.area} م²</div>
-                  <div>الغرف: {u.rooms}</div>
-                  <div>الحمامات: {u.bathrooms}</div>
-                  <div>المطابخ: {u.kitchens}</div>
-                  <div>حديقة: {u.hasGarden?'نعم':'لا'} | حمام سباحة: {u.hasPool?'نعم':'لا'}</div>
-                  <div>اتصال: {u.phone} | واتساب: {u.whatsapp}</div>
-                  <div>الموقع: {u.lat && u.lng ? `${u.lat}, ${u.lng}` : '---'}</div>
-                  <div>المطور: {devs.find(d=>d.id===u.developerId)?.name||'---'}</div>
-                  <div>الكمبوند: {u.compound||'---'}</div>
-                  <div>السعر: {u.price||'---'}</div>
-                  <div>الدفع: {u.paymentType||'---'} | التمويل: {u.finance||'---'}</div>
-                  {u.images && u.images.length>0 && <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>{u.images.map((img:string,idx:number)=>(<img key={idx} src={img} alt="img" style={{width:48,height:48,borderRadius:6,objectFit:'cover'}}/>))}</div>}
-                  {u.vrUrl && <div><a href={u.vrUrl} target="_blank" rel="noopener noreferrer">VR/3D</a></div>}
-                  {u.panoramaUrl && <div><a href={u.panoramaUrl} target="_blank" rel="noopener noreferrer">بانوراما</a></div>}
-                  {u.model3dUrl && <div><a href={u.model3dUrl} target="_blank" rel="noopener noreferrer">نموذج 3D</a></div>}
-                  <button onClick={()=>handleDeleteUnit(u.id)} style={{position:'absolute',top:8,right:8,border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontSize:12}}>حذف</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* المطورين */}
-        {tab==='المطورين' && allowedTabs.includes('المطورين') && (
-          <div>
-            <form onSubmit={handleAddDev} style={{marginBottom:24,display:'flex',gap:8}}>
-              <input value={devForm.name} onChange={e=>setDevForm(f=>({...f,name:e.target.value}))} placeholder="اسم المطور" style={{padding:8,borderRadius:8}} required />
-              <input value={devForm.country} onChange={e=>setDevForm(f=>({...f,country:e.target.value}))} placeholder="الدولة" style={{padding:8,borderRadius:8}} required />
-              <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={loading}>إضافة مطور</button>
-            </form>
-            {/* عرض المطورين */}
-            <div style={{display:'flex',flexWrap:'wrap',gap:16}}>
-              {devs.map((d)=>(
-                <div key={d.id} style={{border:'1px solid #eee',borderRadius:12,padding:12,minWidth:220,maxWidth:260,position:'relative'}}>
-                  <b>{d.name}</b>
-                  <div>الدولة: {d.country}</div>
-                  {d.logo && <img src={d.logo} alt="شعار المطور" style={{width:'100%',borderRadius:8,marginTop:8}} />}
-                  <button onClick={()=>handleDeleteDev(d.id)} style={{position:'absolute',top:8,right:8,border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontSize:12}}>حذف</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* المستخدمون */}
-        {tab==='المستخدمون' && allowedTabs.includes('المستخدمون') && (
-          <div>
-            <form onSubmit={handleAddUser} style={{marginBottom:24,display:'flex',flexWrap:'wrap',gap:8}}>
-              <input value={userForm.name} onChange={e=>setUserForm(f=>({...f,name:e.target.value}))} placeholder="الاسم" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={userForm.username} onChange={e=>setUserForm(f=>({...f,username:e.target.value}))} placeholder="اسم المستخدم" style={{margin:4,padding:8,borderRadius:8}} required />
-              <input value={userForm.password} onChange={e=>setUserForm(f=>({...f,password:e.target.value}))} placeholder="كلمة المرور" type="password" style={{margin:4,padding:8,borderRadius:8}} required />
-              <select value={userForm.role} onChange={e=>setUserForm(f=>({...f,role:e.target.value}))} style={{margin:4,padding:8,borderRadius:8}} required>
-                <option value="موظف">موظف</option>
-                <option value="مدير">مدير</option>
-                <option value="مطور">مطور</option>
-              </select>
-              <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={loading}>إضافة مستخدم</button>
-            </form>
-            {/* عرض المستخدمين */}
-            <div style={{display:'flex',flexWrap:'wrap',gap:16}}>
-              {users.map((u)=>(
-                <div key={u.id} style={{border:'1px solid #eee',borderRadius:12,padding:12,minWidth:220,maxWidth:260,position:'relative'}}>
-                  <b>{u.name}</b>
-                  <div>اسم المستخدم: {u.username}</div>
-                  <div>الدور: {u.role}</div>
-                  <button onClick={()=>handleDeleteUser(u.id)} style={{position:'absolute',top:8,right:8,border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'4px 8px',cursor:'pointer',fontSize:12}}>حذف</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* الإعلانات */}
-        {tab==='الإعلانات' && allowedTabs.includes('الإعلانات') && (
-          <div>
-            <p>قريباً...</p>
-          </div>
-        )}
-        {/* الإعدادات */}
-        {tab==='الإعدادات' && allowedTabs.includes('الإعدادات') && (
-          <div>
-            {/* بيانات التواصل */}
-            <div style={{marginBottom:32}}>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>بيانات التواصل</div>
-              <form onSubmit={handleSaveContacts} style={{display:'flex',flexDirection:'column',gap:12}}>
-                <input value={contacts.phone} onChange={e=>setContacts(c=>({...c,phone:e.target.value}))} placeholder="رقم الهاتف" style={{padding:8,borderRadius:8}} />
-                <input value={contacts.whatsapp} onChange={e=>setContacts(c=>({...c,whatsapp:e.target.value}))} placeholder="رقم واتساب" style={{padding:8,borderRadius:8}} />
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={contactsLoading}>حفظ البيانات</button>
-              </form>
-            </div>
-            {/* نص "من نحن" */}
-            <div style={{marginBottom:32}}>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>نبذة عن التطبيق</div>
-              <form onSubmit={handleSaveAbout} style={{display:'flex',flexDirection:'column',gap:12}}>
-                <textarea value={aboutText} onChange={e=>setAboutText(e.target.value)} placeholder="اكتب نبذة عن التطبيق هنا..." style={{padding:8,borderRadius:8,minHeight:100}} />
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={aboutLoading}>حفظ النص</button>
-              </form>
-            </div>
-            {/* الشركاء */}
-            <div style={{marginBottom:32}}>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>الشركاء</div>
-              <form onSubmit={handleAddPartner} style={{display:'flex',gap:8,marginBottom:16}}>
-                <input value={partnerForm.name} onChange={e=>setPartnerForm(f=>({...f,name:e.target.value}))} placeholder="اسم الشريك" style={{padding:8,borderRadius:8}} required />
-                <input value={partnerForm.url} onChange={e=>setPartnerForm(f=>({...f,url:e.target.value}))} placeholder="رابط الموقع" style={{padding:8,borderRadius:8}} />
-                <input type="file" onChange={e=>setPartnerImageFile(e.target.files?.[0]||null)} style={{padding:8,borderRadius:8}} />
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={partnersLoading}>إضافة شريك</button>
-              </form>
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                {partners.map((p,idx)=>(
-                  <div key={idx} style={{display:'flex',alignItems:'center',gap:8,border:'1px solid #eee',borderRadius:12,padding:12}}>
-                    <img src={p.image} alt={p.name} style={{width:40,height:40,borderRadius:20,objectFit:'cover'}} />
-                    <div style={{flex:1}}>
-                      <div style={{fontWeight:'bold'}}>{p.name}</div>
-                      <div style={{color:'#666'}}>{p.url}</div>
-                    </div>
-                    <button onClick={()=>handleDeletePartner(idx)} style={{border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'6px 12px',cursor:'pointer',fontSize:12}}>حذف</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* إعدادات الشريط المتحرك */}
-            <div style={{marginBottom:32}}>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>إعدادات الشريط المتحرك</div>
-              <form onSubmit={handleSaveMarquee} style={{display:'flex',flexDirection:'column',gap:12}}>
-                <textarea value={marquee.texts.join('\n')} onChange={e=>setMarquee(m=>({...m,texts:e.target.value.split('\n')}))} placeholder="نص الشريط المتحرك (سطر واحد لكل رسالة)" style={{padding:8,borderRadius:8,minHeight:100}} />
-                <div style={{display:'flex',gap:8}}>
-                  <input value={marquee.speed} type="number" onChange={e=>setMarquee(m=>({...m,speed:Number(e.target.value)}))} placeholder="سرعة الحركة (بالبكسل)" style={{padding:8,borderRadius:8,width:'50%'}} />
-                  <input value={marquee.color} onChange={e=>setMarquee(m=>({...m,color:e.target.value}))} placeholder="لون النص" style={{padding:8,borderRadius:8,width:'50%'}} />
-                </div>
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={marqueeLoading}>حفظ الإعدادات</button>
-              </form>
-            </div>
-            {/* سلايدر الصور */}
-            <div style={{marginBottom:32}}>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>صور السلايدر</div>
-              <form onSubmit={handleAddSliderImages} style={{display:'flex',gap:8,marginBottom:16}}>
-                <input type="file" multiple accept="image/*" onChange={e=>setSliderFiles(Array.from(e.target.files||[]))} style={{padding:8,borderRadius:8}} />
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={sliderLoading}>رفع الصور</button>
-              </form>
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                {sliderImages.map((img,idx)=>(
-                  <div key={idx} style={{display:'flex',alignItems:'center',gap:8,border:'1px solid #eee',borderRadius:12,padding:12}}>
-                    <img src={img} alt={`سلايدر ${idx+1}`} style={{width:100,height:100,borderRadius:8,objectFit:'cover'}} />
-                    <button onClick={()=>handleDeleteSliderImage(idx)} style={{border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'6px 12px',cursor:'pointer',fontSize:12}}>حذف</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* صور من نحن */}
-            <div>
-              <div style={{fontSize:18,fontWeight:'bold',marginBottom:16}}>صور من نحن</div>
-              <form onSubmit={handleAddAboutImages} style={{display:'flex',gap:8,marginBottom:16}}>
-                <input type="file" multiple accept="image/*" onChange={e=>setAboutImageFiles(Array.from(e.target.files||[]))} style={{padding:8,borderRadius:8}} />
-                <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={aboutImagesLoading}>رفع الصور</button>
-              </form>
-              <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                {aboutImages.map((img,idx)=>(
-                  <div key={idx} style={{display:'flex',alignItems:'center',gap:8,border:'1px solid #eee',borderRadius:12,padding:12}}>
-                    <img src={img} alt={`صورة من نحن ${idx+1}`} style={{width:100,height:100,borderRadius:8,objectFit:'cover'}} />
-                    <button onClick={()=>handleDeleteAboutImage(idx)} style={{border:'none',background:'rgba(255,255,255,0.8)',borderRadius:6,padding:'6px 12px',cursor:'pointer',fontSize:12}}>حذف</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        {/* من نحن */}
-        {tab==='من نحن' && (
-          <div>
-            <div style={{fontSize:22,color:'#00bcd4',fontWeight:'bold',marginBottom:16}}>من نحن</div>
-            <p style={{lineHeight:1.6}}>
-              نحن شركة رائدة في مجال تطوير التطبيقات العقارية، نسعى لتقديم أفضل الحلول التكنولوجية لمستخدمينا الكرام. فريقنا مكون من محترفين ذوي خبرة عالية في مجالات البرمجة، التصميم، والتسويق العقاري.
-            </p>
-            <p style={{lineHeight:1.6}}>
-              مهمتنا هي تسهيل عملية البحث عن العقارات وتوفير منصة موثوقة تربط بين المطورين، الوسطاء، والمشترين. نحن نؤمن بأهمية الابتكار والتطوير المستمر لتلبية احتياجات سوق العقارات المتغيرة.
-            </p>
-            <p style={{lineHeight:1.6}}>
-              رؤيتنا هي أن نكون الخيار الأول في مجال التطبيقات العقارية في الشرق الأوسط، من خلال تقديم خدمات متميزة وتجربة مستخدم فريدة.
-            </p>
-          </div>
-        )}
-        {/* الشركاء */}
-        {tab==='الشركاء' && (
-          <div>
-            <div style={{fontSize:22,color:'#00bcd4',fontWeight:'bold',marginBottom:16}}>شركاؤنا</div>
-            <p style={{lineHeight:1.6}}>
-              نحن فخورون بشراكتنا مع مجموعة من أفضل الشركات والمطورين في مجال العقارات. شراكاتنا قائمة على الثقة، الشفافية، والاحترافية.
-            </p>
-            <p style={{lineHeight:1.6}}>
-              إذا كنت مطوراً أو شركة مهتمة بالشراكة معنا، لا تتردد في <a href="mailto:info@app.local" style={{color:'#00bcd4',fontWeight:'bold'}}>التواصل معنا عبر البريد الإلكتروني</a>.
-            </p>
-          </div>
+    <div style={{display:'flex',direction:'rtl'}}>
+      <GlassSidebarDeep section={section} setSection={setSection} />
+      <div style={{flex:1,padding:'32px 32px 32px 120px',background:'linear-gradient(135deg,#e0f7fa 0%,#fff 100%)',minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+        <div style={{flex:1}}>
+          {section==='dashboard' && <DashboardStats />}
+          {section==='all-employees' && <EmployeesPanel />}
+          {section==='all-units' && <UnitsPanel coOwnershipMode />}
+          {section==='all-developers' && <DevelopersPanel />}
+          {section==='marketers' && <MarketersPanel />}
+          {/* هنا سيتم ربط باقي الأقسام لاحقًا */}
+        </div>
+        {/* قسم تحليلات المشاهدات والزوار والمستخدمين - احترافي وذكي */}
+        {(currentUser && (currentUser.role === 'مدير' || currentUser.role === 'إدارة')) && (
+          <ViewsAnalyticsPanel />
         )}
       </div>
     </div>
@@ -974,3 +649,160 @@ const AdminPanel: React.FC = () => {
 };
 
 export default AdminPanel;
+
+// قسم التحليلات الواقعية وعداد الزوار
+const RealAnalyticsPanel = () => {
+  const [visits, setVisits] = useState<number>(0);
+  const [uniqueVisitors, setUniqueVisitors] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // جلب بيانات الزيارات من Firestore (collection: 'analytics', doc: 'visits')
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      try {
+        const { doc: fsDoc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('../data/firebase');
+        const ref = fsDoc(db, 'analytics', 'visits');
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setVisits(snap.data().total || 0);
+          setUniqueVisitors(snap.data().unique || 0);
+        }
+      } catch {}
+      setLoading(false);
+    };
+    fetchAnalytics();
+  }, []);
+
+  return (
+    <div style={{marginTop:48,background:'rgba(255,255,255,0.22)',borderRadius:24,padding:24,boxShadow:'0 2px 16px #00bcd422',backdropFilter:'blur(16px)',border:'1.5px solid rgba(255,255,255,0.25)',color:'#222',fontWeight:'bold',fontSize:18}}>
+      <div style={{fontSize:22,marginBottom:16}}>تحليلات واقعية وزوار المنصة</div>
+      {loading ? 'جاري تحميل البيانات...' : (
+        <ul style={{lineHeight:2}}>
+          <li>إجمالي الزيارات: <span style={{color:'#00bcd4'}}>{visits}</span></li>
+          <li>عدد الزوار الفريدين: <span style={{color:'#4caf50'}}>{uniqueVisitors}</span></li>
+          <li>آخر تحديث: {new Date().toLocaleString('ar-EG')}</li>
+        </ul>
+      )}
+      <div style={{marginTop:16,fontSize:15,color:'#607d8b',fontWeight:'normal'}}>هذه البيانات حقيقية ومحدثة من قاعدة البيانات.</div>
+    </div>
+  );
+};
+
+// قسم تحليلات المشاهدات والزوار والمستخدمين
+const ViewsAnalyticsPanel = () => {
+  const [analytics, setAnalytics] = useState({
+    visits: 0,
+    uniqueVisitors: 0,
+    activeUsers: 0,
+    shares: 0,
+    coOwners: 0,
+    coRenters: 0,
+    topUnit: '',
+    topCity: '',
+    loading: true
+  });
+
+  useEffect(() => {
+    // جلب بيانات التحليلات من Firestore (أو خدمة مستقبلية)
+    const fetchAnalytics = async () => {
+      setAnalytics(a => ({...a, loading:true}));
+      try {
+        const { doc: fsDoc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('../data/firebase');
+        // زيارات وزوار
+        const visitsRef = fsDoc(db, 'analytics', 'visits');
+        const visitsSnap = await getDoc(visitsRef);
+        // مستخدمين نشطين
+        const activeRef = fsDoc(db, 'analytics', 'activeUsers');
+        const activeSnap = await getDoc(activeRef);
+        // المشاركات
+        const sharesRef = fsDoc(db, 'analytics', 'shares');
+        const sharesSnap = await getDoc(sharesRef);
+        // المشاركين في الملكية/الإيجار
+        const coRef = fsDoc(db, 'analytics', 'coOwnership');
+        const coSnap = await getDoc(coRef);
+        // أكثر وحدة مشاهدة
+        const topUnit = visitsSnap.exists() ? (visitsSnap.data().topUnit || '') : '';
+        // أكثر مدينة طلبًا
+        const topCity = visitsSnap.exists() ? (visitsSnap.data().topCity || '') : '';
+        setAnalytics({
+          visits: visitsSnap.exists() ? (visitsSnap.data().total || 0) : 0,
+          uniqueVisitors: visitsSnap.exists() ? (visitsSnap.data().unique || 0) : 0,
+          activeUsers: activeSnap.exists() ? (activeSnap.data().count || 0) : 0,
+          shares: sharesSnap.exists() ? (sharesSnap.data().count || 0) : 0,
+          coOwners: coSnap.exists() ? (coSnap.data().owners || 0) : 0,
+          coRenters: coSnap.exists() ? (coSnap.data().renters || 0) : 0,
+          topUnit,
+          topCity,
+          loading: false
+        });
+      } catch {
+        setAnalytics(a => ({...a, loading:false}));
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  return (
+    <div style={{marginTop:48,background:'rgba(255,255,255,0.28)',borderRadius:24,padding:32,boxShadow:'0 2px 24px #00bcd422',backdropFilter:'blur(18px)',border:'1.5px solid rgba(255,255,255,0.25)',color:'#222',fontWeight:'bold',fontSize:18}}>
+      <div style={{fontSize:22,marginBottom:16}}>تحليلات المشاهدات والزوار والمستخدمين</div>
+      {analytics.loading ? 'جاري تحميل البيانات...' : (
+        <div style={{display:'flex',gap:32,flexWrap:'wrap',justifyContent:'center'}}>
+          <AnalyticsBox label="إجمالي الزيارات" value={analytics.visits} color="#00bcd4" />
+          <AnalyticsBox label="الزوار الفريدون" value={analytics.uniqueVisitors} color="#4caf50" />
+          <AnalyticsBox label="المستخدمون النشطون الآن" value={analytics.activeUsers} color="#ff9800" />
+          <AnalyticsBox label="عدد المشاركات" value={analytics.shares} color="#3f51b5" />
+          <AnalyticsBox label="مشاركون في الملكية" value={analytics.coOwners} color="#e91e63" />
+          <AnalyticsBox label="مشاركون في الإيجار" value={analytics.coRenters} color="#607d8b" />
+        </div>
+      )}
+      {!analytics.loading && (
+        <div style={{marginTop:32,fontSize:16,fontWeight:'normal',color:'#333'}}>
+          <div>أكثر وحدة مشاهدة: <b>{analytics.topUnit || '-'}</b></div>
+          <div>أكثر مدينة طلبًا: <b>{analytics.topCity || '-'}</b></div>
+          <div style={{marginTop:16,color:'#888'}}>هذه البيانات حقيقية ومحدثة من قاعدة البيانات. يدعم النظام مستقبلًا تتبع المشاركة في الملكية والإيجار عبر العقود الذكية وNFT.</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// مكون AnalyticsBox الزجاجي
+const AnalyticsBox = ({label, value, color}:{label:string,value:number,color:string}) => (
+  <div style={{
+    background:'rgba(255,255,255,0.35)',
+    borderRadius:16,
+    padding:'18px 32px',
+    minWidth:200,
+    boxShadow:'0 2px 12px #00bcd433',
+    display:'flex',
+    flexDirection:'column',
+    alignItems:'center',
+    border:'1.5px solid rgba(255,255,255,0.18)',
+    marginBottom:8
+  }}>
+    <div style={{fontSize:28,fontWeight:'bold',color,marginBottom:4}}>{value}</div>
+    <div style={{fontWeight:'bold',color:'#222',fontSize:15}}>{label}</div>
+  </div>
+);
+
+// مثال ربط أولي مع CRM مفتوح المصدر (EspoCRM)
+// يمكن نقل هذا الكود إلى ملف خدمة منفصل لاحقًا
+const fetchLeadsFromEspoCRM = async () => {
+  // استبدل القيم حسب إعدادات EspoCRM لديك
+  const apiUrl = 'https://your-espocrm-instance.com/api/v1/Lead';
+  const apiKey = 'YOUR_API_KEY';
+  try {
+    const res = await fetch(apiUrl, {
+      headers: { 'X-Api-Key': apiKey }
+    });
+    if (!res.ok) throw new Error('فشل في جلب البيانات من EspoCRM');
+    const data = await res.json();
+    return data.list || [];
+  } catch (err) {
+    console.error('CRM Error:', err);
+    return [];
+  }
+};
