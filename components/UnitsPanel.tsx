@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../data/firebase';
 import { FaTrash, FaMapMarkerAlt, FaEdit, FaCamera, FaImages, FaUser } from 'react-icons/fa';
+import imageCompression from 'browser-image-compression';
 
 const UNIT_TYPES = [
   'قصر','فيلا','بنتهاوس','توين هاوس','شقة','استوديو','غرفة فندقية','مكتب','أرض','محل','عيادة','مستشفى','مدرسة','أخرى'
@@ -63,8 +64,10 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
         const storage = getStorage();
         for (const file of imageFiles) {
+          // ضغط الصورة قبل الرفع
+          const compressedFile = await imageCompression(file, { maxSizeMB: 0.4, maxWidthOrHeight: 900, useWebWorker: true });
           const imgRef = ref(storage, `units/${Date.now()}_${file.name}`);
-          await uploadBytes(imgRef, file);
+          await uploadBytes(imgRef, compressedFile);
           const url = await getDownloadURL(imgRef);
           imageUrls.push(url);
         }
@@ -119,6 +122,14 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         <input value={form.panoramaUrl} onChange={e=>setForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط بانوراما" style={{padding:8,borderRadius:8}} />
         <input value={form.model3dUrl} onChange={e=>setForm(f=>({...f,model3dUrl:e.target.value}))} placeholder="رابط نموذج 3D" style={{padding:8,borderRadius:8}} />
         <input type="file" accept="image/*" multiple onChange={e=>setImageFiles(Array.from(e.target.files||[]))} style={{minWidth:120}} />
+        {/* معاينة الصور */}
+        {imageFiles.length > 0 && (
+          <div style={{display:'flex',gap:8,alignItems:'center',margin:'8px 0'}}>
+            {imageFiles.map((file,i)=>(
+              <img key={i} src={URL.createObjectURL(file)} alt="معاينة" style={{width:48,height:48,borderRadius:8,objectFit:'cover',border:'1.5px solid #00bcd4'}} />
+            ))}
+          </div>
+        )}
         {coOwnershipMode && (
           <div style={{display:'flex',flexDirection:'column',gap:4,background:'#fff2',padding:12,borderRadius:12}}>
             <div style={{fontWeight:'bold',color:'#00bcd4'}}>مشاركة في الشراء</div>
