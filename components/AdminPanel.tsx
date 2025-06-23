@@ -6,6 +6,16 @@ import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase
 import { defaultContacts, ContactLinks } from '../data/contacts';
 import { doc as fsDoc, getDoc, setDoc } from 'firebase/firestore';
 import { compounds } from '../data/compounds';
+import DashboardStats from './DashboardStats';
+import CRM from './CRM';
+import Reviews from './Reviews';
+import DemoEmployees from './DemoEmployees';
+import CompareUnits from './CompareUnits';
+import NotificationBox from './NotificationBox';
+import ExportCSV from './ExportCSV';
+import VoiceSearch from './VoiceSearch';
+import SmartChat from './SmartChat';
+import AnalyticsBox from './AnalyticsBox';
 
 console.log('=== AdminPanel.tsx Mounted ===');
 let debugStep = 'AdminPanel mounted';
@@ -612,7 +622,37 @@ const AdminPanel: React.FC = () => {
   const allTabs = [...TABS, { key: 'التواصل', label: 'روابط التواصل' }];
 
   return (
-    <div style={{display:'flex',gap:32,minHeight:600}}>
+    <div>
+      {/* لوحة الإحصائيات */}
+      <DashboardStats />
+      {/* نظام إدارة العملاء (CRM) */}
+      <CRM />
+      {/* نظام التقييمات والمراجعات */}
+      <Reviews />
+      {/* بيانات تجريبية للموظفين */}
+      <DemoEmployees />
+      {/* الإشعارات */}
+      <NotificationBox />
+      {/* مقارنة العقارات */}
+      <CompareUnits />
+      {/* تصدير البيانات */}
+      <ExportCSV data={[]} filename="export.csv" />
+      {/* البحث الصوتي */}
+      <VoiceSearch onResult={(q: string) => alert('بحث صوتي: ' + q)} />
+      {/* الدردشة الذكية */}
+      <SmartChat />
+      {/* التحليلات المتقدمة */}
+      <AnalyticsBox />
+      <div style={{display:'flex',gap:16,margin:'24px 0'}}>
+        {TABS.map(t => (
+          <button key={t.key} onClick={()=>setTab(t.key)} style={{
+            background: tab===t.key?'#00bcd4':'#fff',
+            color: tab===t.key?'#fff':'#00bcd4',
+            border:'1px solid #00bcd4',
+            borderRadius:8,padding:'8px 20px',fontWeight:'bold',fontSize:18,cursor:'pointer'
+          }}>{t.label}</button>
+        ))}
+      </div>
       {/* الشريط الجانبي */}
       <div style={{minWidth:180,background:'#f5f7fa',borderRadius:16,padding:'24px 0',boxShadow:'0 2px 12px #e0e0e0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
         <div style={{fontWeight:'bold',fontSize:22,color:'#00bcd4',marginBottom:16}}>لوحة التحكم</div>
@@ -861,7 +901,7 @@ const AdminPanel: React.FC = () => {
               <form onSubmit={handleSaveMarquee} style={{display:'flex',flexDirection:'column',gap:12}}>
                 <textarea value={marquee.texts.join('\n')} onChange={e=>setMarquee(m=>({...m,texts:e.target.value.split('\n')}))} placeholder="نص الشريط المتحرك (سطر واحد لكل رسالة)" style={{padding:8,borderRadius:8,minHeight:100}} />
                 <div style={{display:'flex',gap:8}}>
-                  <input value={marquee.speed} onChange={e=>setMarquee(m=>({...m,speed:e.target.value}))} placeholder="سرعة الحركة (بالبكسل)" style={{padding:8,borderRadius:8,width:'50%'}} />
+                  <input value={marquee.speed} type="number" onChange={e=>setMarquee(m=>({...m,speed:Number(e.target.value)}))} placeholder="سرعة الحركة (بالبكسل)" style={{padding:8,borderRadius:8,width:'50%'}} />
                   <input value={marquee.color} onChange={e=>setMarquee(m=>({...m,color:e.target.value}))} placeholder="لون النص" style={{padding:8,borderRadius:8,width:'50%'}} />
                 </div>
                 <button type="submit" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold'}} disabled={marqueeLoading}>حفظ الإعدادات</button>
