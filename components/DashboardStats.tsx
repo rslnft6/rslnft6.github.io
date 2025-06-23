@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../data/firebase';
 import { Bar, Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { FaUser, FaUsers, FaBuilding, FaIndustry, FaChartLine, FaEye } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../data/firebase';
 
 const DashboardStats: React.FC = () => {
   const [stats, setStats] = useState({
