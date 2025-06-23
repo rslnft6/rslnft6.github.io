@@ -40,6 +40,7 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
   const [coOwners, setCoOwners] = useState<{name:string, share:number}[]>([]);
   // حالة المزاد
   const [auction, setAuction] = useState({ enabled: false, bids: [] as {user:string,amount:number}[], minBid: 0 });
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -57,8 +58,20 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
     e.preventDefault();
     setAdding(true);
     try {
+      let imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const storage = getStorage();
+        for (const file of imageFiles) {
+          const imgRef = ref(storage, `units/${Date.now()}_${file.name}`);
+          await uploadBytes(imgRef, file);
+          const url = await getDownloadURL(imgRef);
+          imageUrls.push(url);
+        }
+      }
       await addDoc(collection(db, 'units'), {
         ...form,
+        images: imageUrls,
         title: `وحدة ${units.length + 1}`,
         hasGarden: !!form.hasGarden,
         hasPool: !!form.hasPool,
@@ -68,6 +81,7 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
       setForm({
         title: '', type: 'شقة', area: '', price: '', rooms: '', bathrooms: '', floors: '', hasGarden: false, hasPool: false, developerId: '', compound: '', employee: '', phone: '', whatsapp: '', lat: '', lng: '', images: [], vrUrl: '', panoramaUrl: '', model3dUrl: '', paymentType: '', finance: ''
       });
+      setImageFiles([]);
       setCoOwners([]);
       setAuction({ enabled: false, bids: [], minBid: 0 });
     } catch {}
@@ -104,6 +118,7 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         <input value={form.vrUrl} onChange={e=>setForm(f=>({...f,vrUrl:e.target.value}))} placeholder="رابط VR" style={{padding:8,borderRadius:8}} />
         <input value={form.panoramaUrl} onChange={e=>setForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط بانوراما" style={{padding:8,borderRadius:8}} />
         <input value={form.model3dUrl} onChange={e=>setForm(f=>({...f,model3dUrl:e.target.value}))} placeholder="رابط نموذج 3D" style={{padding:8,borderRadius:8}} />
+        <input type="file" accept="image/*" multiple onChange={e=>setImageFiles(Array.from(e.target.files||[]))} style={{minWidth:120}} />
         {coOwnershipMode && (
           <div style={{display:'flex',flexDirection:'column',gap:4,background:'#fff2',padding:12,borderRadius:12}}>
             <div style={{fontWeight:'bold',color:'#00bcd4'}}>مشاركة في الشراء</div>
@@ -152,7 +167,10 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
           <tbody>
             {units.map((u,i) => (
               <tr key={u.id} style={{borderBottom:'1px solid #eee'}}>
-                <td style={{padding:8}}>{u.title||`وحدة ${i+1}`}</td>
+                <td style={{padding:8}}>
+                  {u.images && u.images.length > 0 && <img src={u.images[0]} alt="صورة" style={{width:38,height:38,borderRadius:8,objectFit:'cover',marginLeft:6,verticalAlign:'middle',border:'1.5px solid #00bcd4'}} />}
+                  {u.title||`وحدة ${i+1}`}
+                </td>
                 <td style={{padding:8}}>{u.type}</td>
                 <td style={{padding:8}}>{u.area}</td>
                 <td style={{padding:8}}>{u.price}</td>

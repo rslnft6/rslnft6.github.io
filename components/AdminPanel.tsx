@@ -21,6 +21,7 @@ import EmployeesPanel from './EmployeesPanel';
 import UnitsPanel from './UnitsPanel';
 import DevelopersPanel from './DevelopersPanel';
 import MarketersPanel from './MarketersPanel';
+import BottomGlassNav from './BottomGlassNav';
 
 console.log('=== AdminPanel.tsx Mounted ===');
 let debugStep = 'AdminPanel mounted';
@@ -628,13 +629,37 @@ const AdminPanel: React.FC = () => {
   const allTabs = [...TABS, { key: 'التواصل', label: 'روابط التواصل' }];
 
   return (
-    <div style={{display:'flex',direction:'rtl'}}>
+    <div style={{
+      display:'flex',
+      direction:'rtl',
+      minHeight:'100vh',
+      background:'linear-gradient(135deg,rgba(0,188,212,0.12) 0%,rgba(255,255,255,0.22) 100%)',
+      backdropFilter:'blur(24px)',
+      boxShadow:'0 8px 48px 0 #00bcd455',
+      borderRadius: '0 0 48px 48px',
+      border:'none',
+      overflow:'hidden'
+    }}>
       <GlassSidebarDeep section={section} setSection={setSection} />
-      <div style={{flex:1,padding:'32px 32px 32px 120px',background:'linear-gradient(135deg,#e0f7fa 0%,#fff 100%)',minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <div style={{
+        flex:1,
+        padding:'48px 48px 48px 140px',
+        background:'linear-gradient(120deg,rgba(255,255,255,0.22) 0%,rgba(0,188,212,0.10) 100%)',
+        minHeight:'100vh',
+        display:'flex',
+        flexDirection:'column',
+        borderRadius:'32px',
+        boxShadow:'0 4px 32px #00bcd422',
+        border:'1.5px solid rgba(255,255,255,0.18)',
+        transition:'all 0.3s cubic-bezier(.4,2,.6,1)'
+      }}>
         <div style={{flex:1}}>
           {section==='dashboard' && <DashboardStats />}
           {section==='all-employees' && <EmployeesPanel />}
-          {section==='all-units' && <UnitsPanel coOwnershipMode />}
+          {section==='all-units' && <>
+            <SmartUnitSearch units={units} />
+            <UnitsPanel coOwnershipMode />
+          </>}
           {section==='all-developers' && <DevelopersPanel />}
           {section==='marketers' && <MarketersPanel />}
           {/* هنا سيتم ربط باقي الأقسام لاحقًا */}
@@ -643,6 +668,8 @@ const AdminPanel: React.FC = () => {
         {(currentUser && (currentUser.role === 'مدير' || currentUser.role === 'إدارة')) && (
           <ViewsAnalyticsPanel />
         )}
+        {/* شريط المهام السفلي الزجاجي */}
+        <BottomGlassNav />
       </div>
     </div>
   );
@@ -788,21 +815,69 @@ const AnalyticsBox = ({label, value, color}:{label:string,value:number,color:str
   </div>
 );
 
-// مثال ربط أولي مع CRM مفتوح المصدر (EspoCRM)
-// يمكن نقل هذا الكود إلى ملف خدمة منفصل لاحقًا
-const fetchLeadsFromEspoCRM = async () => {
-  // استبدل القيم حسب إعدادات EspoCRM لديك
-  const apiUrl = 'https://your-espocrm-instance.com/api/v1/Lead';
-  const apiKey = 'YOUR_API_KEY';
-  try {
-    const res = await fetch(apiUrl, {
-      headers: { 'X-Api-Key': apiKey }
-    });
-    if (!res.ok) throw new Error('فشل في جلب البيانات من EspoCRM');
-    const data = await res.json();
-    return data.list || [];
-  } catch (err) {
-    console.error('CRM Error:', err);
-    return [];
-  }
+// مكون البحث الذكي (كتابي/صوتي) مع اقتراح وحدات
+const SmartUnitSearch: React.FC<{units:any[]}> = ({ units }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [listening, setListening] = useState(false);
+  // البحث التلقائي عند الكتابة
+  useEffect(() => {
+    if (!query) { setResults([]); return; }
+    const q = query.trim().toLowerCase();
+    setResults(units.filter(u =>
+      (u.title||'').toLowerCase().includes(q) ||
+      (u.type||'').toLowerCase().includes(q) ||
+      (u.area||'').toLowerCase().includes(q) ||
+      (u.price||'').toLowerCase().includes(q)
+    ));
+  }, [query, units]);
+  // البحث الصوتي
+  const handleVoice = () => {
+    if (!('webkitSpeechRecognition' in window)) return alert('المتصفح لا يدعم البحث الصوتي');
+    const rec = new (window as any).webkitSpeechRecognition();
+    rec.lang = 'ar-EG';
+    rec.onstart = () => setListening(true);
+    rec.onend = () => setListening(false);
+    rec.onresult = (e:any) => {
+      const text = e.results[0][0].transcript;
+      setQuery(text);
+      // تحديث النتائج مباشرة بعد انتهاء التسجيل
+      const q = text.trim().toLowerCase();
+      setResults(units.filter(u =>
+        (u.title||'').toLowerCase().includes(q) ||
+        (u.type||'').toLowerCase().includes(q) ||
+        (u.area||'').toLowerCase().includes(q) ||
+        (u.price||'').toLowerCase().includes(q)
+      ));
+    };
+    rec.start();
+  };
+  return (
+    <div style={{margin:'32px 0',background:'rgba(255,255,255,0.22)',borderRadius:20,padding:24,boxShadow:'0 2px 16px #00bcd422',backdropFilter:'blur(12px)',border:'1.5px solid rgba(255,255,255,0.18)',maxWidth:600}}>
+      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+        <input
+          value={query}
+          onChange={e=>setQuery(e.target.value)}
+          placeholder="ابحث عن وحدة (اسم، نوع، مساحة، سعر...)"
+          style={{flex:1,padding:12,borderRadius:12,border:'none',fontSize:18,background:'rgba(255,255,255,0.35)',boxShadow:'0 1px 6px #00bcd422'}}
+        />
+        <button onClick={handleVoice} style={{background:listening?'#00bcd4':'#fff',color:listening?'#fff':'#00bcd4',border:'none',borderRadius:12,padding:'10px 16px',fontWeight:'bold',fontSize:18,cursor:'pointer',transition:'0.2s'}}>
+          🎤
+        </button>
+      </div>
+      {results.length > 0 && (
+        <div style={{marginTop:16,background:'rgba(255,255,255,0.18)',borderRadius:16,padding:12,boxShadow:'0 1px 8px #00bcd422'}}>
+          <div style={{fontWeight:'bold',color:'#00bcd4',marginBottom:8}}>الوحدات المقترحة:</div>
+          <ul style={{listStyle:'none',padding:0,margin:0}}>
+            {results.slice(0,8).map((u,i)=>(
+              <li key={u.id||i} style={{padding:'8px 0',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center'}}>
+                <span style={{fontWeight:'bold',color:'#222'}}>{u.title||'وحدة'}</span>
+                <span style={{color:'#607d8b',fontSize:15}}>{u.type} - {u.area}م - {u.price}ج</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 };
