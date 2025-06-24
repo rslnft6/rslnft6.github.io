@@ -1,23 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { searchPropertiesInText } from '../services/smartChatSearch';
 import { getAllProperties } from '../data/properties';
 
-// نموذج دردشة ذكية مجاني (يعتمد على نموذج مفتوح المصدر من HuggingFace)
-const HF_API = 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium';
+// نموذج دردشة ذكية تفاعلية متعدد الخطوات (قابل للتوسعة)
+// يدعم جمع معلومات العميل واقتراح وحدات وخدمات بناءً على احتياجه
 
 const SmartChat: React.FC = () => {
+  // إدارة حالة الحوار
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  // حالة الأسئلة التفاعلية
+  const [step, setStep] = useState(0); // 0: ترحيب, 1: موقع, 2: ميزانية, 3: نوع, 4: غرف, 5: دفع, 6: اقتراح وحدات
+  const [answers, setAnswers] = useState<any>({});
 
-  // تحليل نية المستخدم بشكل أعمق
-  function detectIntent(text: string) {
-    const q = text.toLowerCase();
-    if (q.includes('شقة') || q.includes('فيلا') || q.includes('قصر') || q.includes('عيادة') || q.includes('محل') || q.includes('مكتب') || q.includes('بنتهاوس') || q.includes('تاون')) return 'search';
-    if (q.includes('سعر') || q.includes('كم')) return 'price';
-    if (q.includes('تواصل') || q.includes('مساعدة')) return 'help';
-    return 'general';
-  }
+  // رسالة ترحيب تلقائية عند فتح الدردشة
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        { from: 'bot', text: 'مرحبًا بك في مساعد العقارات الذكي! 👋\nلنقترح لك أفضل الوحدات، أين ترغب بالبحث؟ (اكتب اسم مدينة أو كمباوند أو اختر من الخريطة مستقبلاً)' }
+      ]);
+      setStep(1);
+    }
+  }, []);
 
   // عرض الوحدات كبطاقات
   function renderUnits(units: any[]) {
@@ -38,49 +43,56 @@ const SmartChat: React.FC = () => {
     );
   }
 
+  // منطق الحوار التفاعلي متعدد الخطوات
+  const handleStep = async (userInput: string) => {
+    let nextStep = step;
+    let newAnswers = { ...answers };
+    if (step === 1) {
+      newAnswers.location = userInput;
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'ما هي ميزانيتك التقريبية؟ (مثال: 2 مليون، أو نطاق: 1-3 مليون)' }]);
+      nextStep = 2;
+    } else if (step === 2) {
+      newAnswers.budget = userInput;
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'ما نوع الوحدة المطلوبة؟ (شقة، فيلا، عيادة، مكتب...)' }]);
+      nextStep = 3;
+    } else if (step === 3) {
+      newAnswers.type = userInput;
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'كم عدد الغرف المطلوبة؟' }]);
+      nextStep = 4;
+    } else if (step === 4) {
+      newAnswers.rooms = userInput;
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'ما هو نظام الدفع المفضل؟ (كاش، تقسيط، تمويل بنكي)' }]);
+      nextStep = 5;
+    } else if (step === 5) {
+      newAnswers.payment = userInput;
+      // بحث ذكي عن الوحدات بناءً على الإجابات
+      const results = searchPropertiesInText(
+        `${newAnswers.type||''} في ${newAnswers.location||''} ${newAnswers.budget||''} ${newAnswers.rooms||''} غرف ${newAnswers.payment||''}`
+      );
+      setMessages(msgs => [
+        ...msgs,
+        { from: 'bot', text: results.length ? `وجدت ${results.length} وحدة تناسب طلبك!` : 'لم أجد وحدات مطابقة تمامًا، لكن هذه بعض الاقتراحات:' },
+        { from: 'bot', units: results.length ? results : searchPropertiesInText(newAnswers.location||'') },
+        { from: 'bot', text: 'هل ترغب في التواصل مع مستشار عقاري أو عرض خدمات قريبة (مدارس، مستشفيات، أندية)؟' }
+      ]);
+      nextStep = 6;
+    } else if (step === 6) {
+      // دعم رسائل مستقبلية (اشتراك رمزي، تقييمات، ربط API خارجي)
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'شكرًا لتواصلك! قريبًا سنوفر مزايا عالمية مثل تقييمات المستخدمين، دردشة مباشرة، وخدمات متقدمة.' }]);
+      nextStep = 1;
+      newAnswers = {};
+    }
+    setAnswers(newAnswers);
+    setStep(nextStep);
+    setInput('');
+    setLoading(false);
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     setMessages([...messages, { from: 'user', text: input }]);
     setLoading(true);
-    // تحليل نية المستخدم
-    const intent = detectIntent(input);
-    // بحث ذكي عن الوحدات
-    const results = searchPropertiesInText(input);
-    if (intent==='search' && results.length > 0) {
-      setMessages(msgs => [
-        ...msgs,
-        { from: 'bot', text: `وجدت ${results.length} وحدة تناسب طلبك!`, units: results },
-        { from: 'bot', text: 'هل ترغب في فلترة النتائج أو التواصل مع مستشار عقاري؟' }
-      ]);
-      setInput('');
-      setLoading(false);
-      return;
-    }
-    if (intent==='price') {
-      setMessages(msgs => [...msgs, { from: 'bot', text: 'يمكنك البحث عن الأسعار بكتابة نوع الوحدة أو المدينة (مثال: "سعر شقة في القاهرة").' }]);
-      setInput('');
-      setLoading(false);
-      return;
-    }
-    if (intent==='help') {
-      setMessages(msgs => [...msgs, { from: 'bot', text: 'يسعدنا مساعدتك! يمكنك كتابة نوع الوحدة أو المدينة أو التواصل مع الدعم مباشرة.' }]);
-      setInput('');
-      setLoading(false);
-      return;
-    }
-    // اقتراح تلقائي عام
-    if (results.length > 0) {
-      setMessages(msgs => [
-        ...msgs,
-        { from: 'bot', text: `وجدت بعض الوحدات التي قد تهمك:`, units: results }
-      ]);
-      setInput('');
-      setLoading(false);
-      return;
-    }
-    setMessages(msgs => [...msgs, { from: 'bot', text: 'شكرًا لسؤالك! يمكنك البحث عن وحدة بكتابة نوع العقار أو المدينة (مثال: "شقة في الشيخ زايد").' }]);
-    setInput('');
-    setLoading(false);
+    await handleStep(input);
   };
 
   return (
@@ -104,9 +116,10 @@ const SmartChat: React.FC = () => {
         {loading && <div style={{color:'#888'}}>...جاري الرد</div>}
       </div>
       <div style={{display:'flex',gap:8}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()} placeholder="اكتب سؤالك..." style={{flex:1,padding:8,borderRadius:8,border:'1px solid #b6c6e6'}} />
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()} placeholder="اكتب إجابتك هنا..." style={{flex:1,padding:8,borderRadius:8,border:'1px solid #b6c6e6'}} />
         <button onClick={sendMessage} disabled={loading} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>إرسال</button>
       </div>
+      {/* تعليقات لتوسعة مستقبلية: دعم تقييمات، فلترة متقدمة، ربط API خارجي، خريطة تفاعلية، تسجيل اجتماعي */}
     </div>
   );
 };
