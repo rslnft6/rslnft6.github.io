@@ -202,7 +202,14 @@ export default function Home() {
     <div className="container" style={{
       minHeight: '100vh',
       borderRadius: 24,
-      boxShadow: '0 2px 32px rgba(0,0,0,0.08)'
+      boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
+      background: 'linear-gradient(135deg,rgba(255,255,255,0.92) 0%,rgba(0,188,212,0.10) 100%)',
+      backdropFilter: 'blur(24px)',
+      padding:0,
+      margin:0,
+      width:'100vw',
+      overflow:'hidden',
+      position:'relative'
     }}>
       <Head>
         <title>تطبيق عقارات عالمي</title>
@@ -269,7 +276,15 @@ export default function Home() {
             <FaUserCircle size={26} color="#fff" />
           </button>
         </div>
-        <main>
+        <main style={{
+          minHeight:'70vh',
+          width:'100%',
+          display:'flex',
+          flexDirection:'column',
+          alignItems:'center',
+          justifyContent:'center',
+          padding:'0 0 48px 0',
+        }}>
           {/* شعار Realstatelive أعلى الصفحة */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',margin:'32px 0 8px 0'}}>
             <img src="/images/logo1.png" alt="Realstatelive logo" style={{width:60,marginLeft:12}} />
@@ -449,9 +464,9 @@ export default function Home() {
     letterSpacing: 1
   }}>
     <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:18,flexWrap:'wrap'}}>
-      <button onClick={()=>window.location.href='/about'} style={{background:'#fff',color:'#00bcd4',border:'none',borderRadius:8,padding:'14px 36px',fontWeight:'bold',fontSize:20,cursor:'pointer'}}>من نحن</button>
-      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'#fff',color:'#00bcd4',border:'none',borderRadius:8,padding:'14px 36px',fontWeight:'bold',fontSize:20,cursor:'pointer'}}>تواصل معنا</button>
-      <button onClick={()=>window.location.href='/partners'} style={{background:'#fff',color:'#00bcd4',border:'none',borderRadius:8,padding:'14px 36px',fontWeight:'bold',fontSize:20,cursor:'pointer'}}>شركاؤنا</button>
+      <button onClick={()=>window.location.href='/about'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>من نحن</button>
+      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
+      <button onClick={()=>window.location.href='/partners'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
     </div>
     {/* نبذة من نحن */}
     {/* تم إلغاء عرض النبذة هنا بناءً على طلب المستخدم */}

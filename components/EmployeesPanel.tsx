@@ -57,7 +57,25 @@ const EmployeesPanel: React.FC = () => {
 
   // تنسيق متجاوب
   return (
-    <div style={{background:'rgba(255,255,255,0.18)',backdropFilter:'blur(16px)',borderRadius:24,boxShadow:'0 4px 32px #00bcd422',padding:'6vw 2vw',border:'1.5px solid rgba(255,255,255,0.25)',margin:'32px 0',maxWidth:900,width:'100vw',minHeight:'80vh',overflowX:'auto'}}>
+    <div style={{
+      background:'rgba(255,255,255,0.18)',
+      backdropFilter:'blur(16px)',
+      borderRadius:24,
+      boxShadow:'0 4px 32px #00bcd422',
+      padding:'4vw 2vw',
+      border:'1.5px solid rgba(255,255,255,0.25)',
+      margin:'32px 0',
+      maxWidth:1200,
+      width:'100%',
+      minHeight:'80vh',
+      overflowX:'auto',
+      marginLeft:'auto',
+      marginRight:'auto',
+      // Responsive
+      display:'flex',
+      flexDirection:'column',
+      alignItems:'center',
+    }}>
       <h2 style={{color:'#00bcd4',marginBottom:16,fontSize:24,textAlign:'center'}}>إدارة الموظفين</h2>
       <form onSubmit={handleAdd} style={{display:'flex',gap:8,marginBottom:24,flexWrap:'wrap',justifyContent:'center'}}>
         <input required value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="اسم الموظف" style={inputStyle} />
