@@ -82,23 +82,6 @@ export default function Home() {
   const [showContacts, setShowContacts] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
-  // --- المفضلة والمقارنة ---
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [compare, setCompare] = useState<string[]>([]);
-
-  // --- اقتراحات عالمية لتحسين تجربة المستخدم مثل Zillow وRealtor ---
-  // 1. عرض وحدات مشابهة عند الضغط على وحدة (اقتراحات ذكية)
-  // 2. حفظ آخر وحدات تم تصفحها (recently viewed)
-  // 3. شارة "جديد" أو "مميز" على الكارت
-  // 4. دعم مشاركة الوحدة عبر واتساب/تويتر/رابط مباشر
-  // 5. عرض تقييمات وتعليقات المستخدمين
-  // 6. دعم حفظ البحث (save search) مع تنبيه عند توفر وحدات جديدة
-  // 7. عرض وحدات مشابهة (Similar Units) أسفل كل كارت أو في صفحة التفاصيل
-  // 8. دعم تقييم الوحدة (Rating) وعدد المشاهدات
-  // 9. دعم فلترة متقدمة (سعر، غرف، حمامات، مساحة...)
-  // 10. دعم عرض خريطة Heatmap للطلب أو الأسعار
-  // 11. دعم تسجيل الدخول الاجتماعي (Google, Facebook)
-
   // البحث الذكي
   const handleSmartSearch = (q: string) => {
     setSearch(q);
@@ -127,24 +110,6 @@ export default function Home() {
     setFinance(pendingFilters.finance);
     setPurpose(pendingFilters.purpose);
   };
-
-  // --- حفظ البحث ---
-  const [savedSearches, setSavedSearches] = useState<any[]>([]);
-  // حفظ البحث الحالي
-  const saveCurrentSearch = () => {
-    const searchObj = { ...pendingFilters, date: new Date().toISOString() };
-    setSavedSearches(prev => {
-      const updated = [searchObj, ...prev].slice(0, 5);
-      if (typeof window !== 'undefined') localStorage.setItem('savedSearches', JSON.stringify(updated));
-      return updated;
-    });
-  };
-  // تحميل عمليات البحث المحفوظة
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSavedSearches(JSON.parse(localStorage.getItem('savedSearches') || '[]'));
-    }
-  }, []);
 
   // جلب الوحدات من Firestore
   useEffect(() => {
@@ -233,50 +198,6 @@ export default function Home() {
     fetchSlider();
   }, []);
 
-  // تحميل المفضلة والمقارنة من localStorage عند أول تحميل
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setFavorites(JSON.parse(localStorage.getItem('favorites') || '[]'));
-      setCompare(JSON.parse(localStorage.getItem('compare') || '[]'));
-    }
-  }, []);
-
-  // حفظ المفضلة والمقارنة في localStorage عند التغيير
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('favorites', JSON.stringify(favorites));
-      localStorage.setItem('compare', JSON.stringify(compare));
-    }
-  }, [favorites, compare]);
-
-  // إضافة/إزالة من المفضلة
-  const toggleFavorite = (id: string) => {
-    setFavorites(favs => favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id]);
-  };
-  // إضافة/إزالة من المقارنة (حد أقصى 3)
-  const toggleCompare = (id: string) => {
-    setCompare(cmp => cmp.includes(id) ? cmp.filter(c => c !== id) : (cmp.length < 3 ? [...cmp, id] : cmp));
-  };
-
-  // --- حفظ آخر وحدات تم تصفحها ---
-  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
-  // عند الضغط على كارت وحدة
-  const handleUnitClick = (id: string) => {
-    setRecentlyViewed(prev => {
-      const updated = [id, ...prev.filter(x => x !== id)].slice(0, 8);
-      if (typeof window !== 'undefined') localStorage.setItem('recentlyViewed', JSON.stringify(updated));
-      return updated;
-    });
-    // التنقل باستخدام router بدلاً من window.location.href لتجنب 404
-    push(`/property/${id}`);
-  };
-  // تحميل آخر وحدات تم تصفحها من localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setRecentlyViewed(JSON.parse(localStorage.getItem('recentlyViewed') || '[]'));
-    }
-  }, []);
-
   return (
     <div className="container" style={{
       minHeight: '100vh',
@@ -290,155 +211,6 @@ export default function Home() {
       overflow:'hidden',
       position:'relative'
     }}>
-      <style>{`
-        .glass-form, .glass-table, .glass-card {
-          background: rgba(255,255,255,0.32);
-          border-radius: 20px;
-          box-shadow: 0 2px 16px #00bcd422;
-          backdrop-filter: blur(14px);
-          border: 1.5px solid rgba(0,188,212,0.10);
-          padding: 28px 24px;
-          margin-bottom: 32px;
-          transition: box-shadow 0.2s;
-        }
-        .glass-form input, .glass-form select, .glass-form textarea {
-          background: rgba(255,255,255,0.45);
-          border: 1.5px solid rgba(0,188,212,0.13);
-          border-radius: 12px;
-          padding: 12px 16px;
-          font-size: 17px;
-          margin-bottom: 16px;
-          box-shadow: 0 1px 6px #00bcd422;
-          outline: none;
-          transition: border 0.2s, box-shadow 0.2s;
-        }
-        .glass-form input:focus, .glass-form select:focus, .glass-form textarea:focus {
-          border: 1.5px solid #00bcd4;
-          box-shadow: 0 2px 12px #00bcd433;
-        }
-        .glass-btn {
-          background: linear-gradient(120deg,rgba(255,255,255,0.65) 0%,rgba(0,188,212,0.18) 100%);
-          color: #00bcd4;
-          border: none;
-          border-radius: 14px;
-          padding: 12px 28px;
-          font-size: 18px;
-          font-weight: bold;
-          box-shadow: 0 2px 12px #00bcd422;
-          cursor: pointer;
-          margin: 8px 0;
-          transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-        }
-        .glass-btn:hover {
-          background: linear-gradient(120deg,rgba(0,188,212,0.13) 0%,rgba(255,255,255,0.85) 100%);
-          color: #fff;
-          box-shadow: 0 4px 24px #00bcd433;
-        }
-        .glass-table table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-          background: transparent;
-        }
-        .glass-table th, .glass-table td {
-          background: rgba(255,255,255,0.22);
-          border-radius: 10px;
-          padding: 12px 16px;
-          color: #222;
-          font-size: 16px;
-          border-bottom: 1.5px solid rgba(0,188,212,0.08);
-        }
-        .glass-table th {
-          color: #00bcd4;
-          font-weight: bold;
-          background: rgba(0,188,212,0.08);
-        }
-        .glass-table tr:last-child td {
-          border-bottom: none;
-        }
-        .glass-card {
-          background: rgba(255,255,255,0.85);
-          border-radius: 20px;
-          box-shadow: 0 4px 18px #00bcd422;
-          border: 2px solid #00bcd4;
-          position: relative;
-          overflow: hidden;
-          margin-bottom: 12px;
-          transition: box-shadow 0.2s, border 0.2s;
-        }
-        .glass-card:hover {
-          box-shadow: 0 8px 32px #00bcd433;
-          border: 2.5px solid #00bcd4;
-        }
-        .glass-fav-btn, .glass-compare-btn {
-          position: absolute;
-          top: 12px;
-          z-index: 2;
-          border: none;
-          border-radius: 50%;
-          width: 38px;
-          height: 38px;
-          box-shadow: 0 2px 8px #00bcd422;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: 0.2s;
-          font-size: 20px;
-        }
-        .glass-fav-btn {
-          right: 12px;
-          background: #fff;
-        }
-        .glass-fav-btn.active {
-          background: #00bcd4;
-          color: #fff;
-        }
-        .glass-compare-btn {
-          left: 12px;
-          background: #00bcd4;
-          color: #fff;
-        }
-        .glass-compare-btn.active {
-          background: #fff;
-          color: #00bcd4;
-        }
-        /* تحسين الفلاتر لتكون زجاجية */
-        .search-bar {
-          background: rgba(255,255,255,0.55) !important;
-          box-shadow: 0 2px 12px #00bcd422 !important;
-          border-radius: 18px !important;
-          backdrop-filter: blur(10px) !important;
-        }
-        .search-bar input, .search-bar select {
-          background: rgba(255,255,255,0.45) !important;
-          border: 1.5px solid #00bcd4 !important;
-          border-radius: 10px !important;
-          box-shadow: 0 1px 6px #00bcd422 !important;
-          font-size: 17px !important;
-          padding: 10px 14px !important;
-          margin-bottom: 0 !important;
-        }
-        .search-bar input:focus, .search-bar select:focus {
-          border: 1.5px solid #00bcd4 !important;
-          box-shadow: 0 2px 12px #00bcd433 !important;
-        }
-        .search-bar button {
-          background: linear-gradient(120deg,rgba(255,255,255,0.65) 0%,rgba(0,188,212,0.18) 100%) !important;
-          color: #00bcd4 !important;
-          border: none !important;
-          border-radius: 12px !important;
-          font-weight: bold !important;
-          font-size: 17px !important;
-          box-shadow: 0 2px 12px #00bcd422 !important;
-          transition: background 0.2s, color 0.2s, box-shadow 0.2s !important;
-        }
-        .search-bar button:hover {
-          background: linear-gradient(120deg,rgba(0,188,212,0.13) 0%,rgba(255,255,255,0.85) 100%) !important;
-          color: #fff !important;
-          box-shadow: 0 4px 24px #00bcd433 !important;
-        }
-      `}</style>
       <Head>
         <title>تطبيق عقارات عالمي</title>
         <meta
@@ -594,30 +366,7 @@ export default function Home() {
               <option value="للإيجار">للإيجار</option>
             </select>
             <button onClick={applyFilters} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 24px',fontWeight:'bold',fontSize:16,marginLeft:8,cursor:'pointer'}}>بحث</button>
-            <button onClick={saveCurrentSearch} className="glass-btn" style={{marginLeft:8}}>حفظ البحث</button>
           </div>
-          {/* عرض عمليات البحث المحفوظة */}
-          {savedSearches.length > 0 && (
-            <div className="glass-table" style={{maxWidth:700,margin:'0 auto 24px auto',padding:'14px 20px'}}>
-              <div style={{fontWeight:'bold',fontSize:17,color:'#00bcd4',marginBottom:8}}>عمليات البحث المحفوظة</div>
-              <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-                {savedSearches.map((s,i) => (
-                  <button key={i} className="glass-btn" style={{padding:'6px 16px',fontSize:15}} onClick={()=>{
-                    setPendingFilters(s);
-                    setSearch(s.search||'');
-                    setType(s.type||'');
-                    setCountry(s.country||'');
-                    setCompound(s.compound||'');
-                    setDeveloper(s.developer||'');
-                    setFinance(s.finance||'');
-                    setPurpose(s.purpose||'');
-                  }}>
-                    {Object.entries(s).filter(([k,v])=>v&&k!=='date').map(([k,v])=>v).join(' - ')||'بحث'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           {/* سلايدر صور متحرك ديناميكي */}
           <div style={{width:'100%',overflow:'hidden',margin:'0 auto 24px auto',direction:'ltr'}}>
             <div style={{
@@ -655,61 +404,17 @@ export default function Home() {
           <Swiper spaceBetween={12} slidesPerView={2} style={{marginBottom: 32}}>
             {filteredProperties.slice(0, 10).map((property) => (
               <SwiperSlide key={property.id}>
-                <div className="glass-card" style={{cursor:'pointer',position:'relative'}} onClick={()=>handleUnitClick(property.id)}>
-                  {/* شارة جديد أو مميز */}
-                  {property.isNew && (
-                    <span style={{position:'absolute',top:10,left:60,background:'#ff9800',color:'#fff',borderRadius:8,padding:'2px 10px',fontWeight:'bold',fontSize:13,zIndex:3,boxShadow:'0 1px 6px #ff980033'}}>جديد</span>
-                  )}
-                  {property.isFeatured && (
-                    <span style={{position:'absolute',top:10,left:120,background:'#00bcd4',color:'#fff',borderRadius:8,padding:'2px 10px',fontWeight:'bold',fontSize:13,zIndex:3,boxShadow:'0 1px 6px #00bcd433'}}>مميز</span>
-                  )}
-                  {/* أزرار المفضلة والمقارنة */}
-                  <button
-                    title={favorites.includes(property.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-                    className={`glass-fav-btn${favorites.includes(property.id) ? ' active' : ''}`}
-                    onClick={e=>{e.stopPropagation();toggleFavorite(property.id);}}
-                  >
-                    <span role="img" aria-label="fav">{favorites.includes(property.id) ? '❤️' : '🤍'}</span>
-                  </button>
-                  <button
-                    title={compare.includes(property.id) ? "إزالة من المقارنة" : "إضافة للمقارنة"}
-                    className={`glass-compare-btn${compare.includes(property.id) ? ' active' : ''}`}
-                    onClick={e=>{e.stopPropagation();toggleCompare(property.id);}}
-                  >
-                    <span role="img" aria-label="compare">{compare.includes(property.id) ? '✅' : '🔄'}</span>
-                  </button>
-                  {/* زر مشاركة الوحدة */}
-                  <button
-                    title="مشاركة الوحدة"
-                    style={{position:'absolute',top:12,left:60,zIndex:2,background:'#fff',border:'none',borderRadius:'50%',width:38,height:38,boxShadow:'0 2px 8px #00bcd422',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'0.2s',fontSize:18}}
-                    onClick={e=>{e.stopPropagation();navigator.share ? navigator.share({title:property.title,text:property.details,url:window.location.origin+`/property/${property.id}`}) : navigator.clipboard.writeText(window.location.origin+`/property/${property.id}`);}}
-                  >
-                    <span role="img" aria-label="share">🔗</span>
-                  </button>
-                  <img src={property.image} alt={property.title} style={{width: '100%', height: 140, objectFit: 'cover', borderRadius: 16}} />
-                  <div className="property-details" style={{padding:16}}>
-                    <h3 style={{color:'#00bcd4',fontWeight:'bold',fontSize:20,marginBottom:4}}>{property.title}</h3>
-                    <span style={{color:'#ff9800',fontWeight:'bold',fontSize:15}}>{property.location}</span>
-                    <span style={{color:'#00e676',fontWeight:'bold',display:'block',marginTop:6}}>{property.details}</span>
+                <div className="card" style={{cursor:'pointer',border:'2px solid #00bcd4',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0'}} onClick={()=>window.location.href=`/property/${property.id}`}> 
+                  <img src={property.image} alt={property.title} style={{width: '100%', height: 140, objectFit: 'cover', borderRadius: 12}} />
+                  <div className="property-details">
+                    <h3 style={{color:'#00bcd4',fontWeight:'bold'}}>{property.title}</h3>
+                    <span style={{color:'#ff9800',fontWeight:'bold'}}>{property.location}</span>
+                    <span style={{color:'#00e676',fontWeight:'bold'}}>{property.details}</span>
                   </div>
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>
-          {/* شريط المقارنة العائم */}
-          {compare.length > 0 && (
-            <div style={{position:'fixed',bottom:32,right:32,zIndex:9999,background:'rgba(255,255,255,0.97)',boxShadow:'0 4px 24px #00bcd433',borderRadius:24,padding:'22px 36px',display:'flex',alignItems:'center',gap:20,backdropFilter:'blur(14px)',minWidth:320}}>
-              <span style={{fontWeight:'bold',color:'#00bcd4',fontSize:22}}>مقارنة ({compare.length}/3)</span>
-              {compare.map(id => {
-                const unit = allProperties.find(u => u.id === id);
-                return unit ? (
-                  <span key={id} style={{background:'#00bcd4',color:'#fff',borderRadius:12,padding:'6px 18px',fontWeight:'bold',fontSize:18,marginLeft:4}}>{unit.title}</span>
-                ) : null;
-              })}
-              <button className="glass-btn" style={{margin:0,padding:'10px 24px',fontSize:18}} onClick={()=>window.location.href='/compare?ids='+compare.join(',')}>عرض المقارنة</button>
-              <button className="glass-btn" style={{margin:0,padding:'10px 24px',fontSize:18,background:'#e53935',color:'#fff'}} onClick={()=>setCompare([])}>مسح</button>
-            </div>
-          )}
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
             {!chatOpen && (
@@ -758,11 +463,10 @@ export default function Home() {
     textAlign: 'center',
     letterSpacing: 1
   }}>
-    {/* أزرار كبيرة وواضحة بأسفل الصفحة */}
-    <div style={{display:'flex',justifyContent:'center',gap:32,marginBottom:28,flexWrap:'wrap'}}>
-      <button onClick={()=>window.location.href='/about'} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>من نحن</button>
-      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
-      <button onClick={()=>window.location.href='/partners'} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
+    <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:18,flexWrap:'wrap'}}>
+      <button onClick={()=>window.location.href='/about'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>من نحن</button>
+      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
+      <button onClick={()=>window.location.href='/partners'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
     </div>
     {/* نبذة من نحن */}
     {/* تم إلغاء عرض النبذة هنا بناءً على طلب المستخدم */}

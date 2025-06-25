@@ -3,6 +3,8 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../data/firebase';
 import { FaTrash, FaMapMarkerAlt, FaEdit, FaCamera, FaImages, FaUser } from 'react-icons/fa';
 import imageCompression from 'browser-image-compression';
+import { compounds } from '../data/compounds';
+import { developers } from '../data/developers';
 
 const UNIT_TYPES = [
   'قصر','فيلا','بنتهاوس','توين هاوس','شقة','استوديو','غرفة فندقية','مكتب','أرض','محل','عيادة','مستشفى','مدرسة','أخرى'
@@ -42,6 +44,7 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
   // حالة المزاد
   const [auction, setAuction] = useState({ enabled: false, bids: [] as {user:string,amount:number}[], minBid: 0 });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -114,10 +117,25 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         <input value={form.floors} onChange={e=>setForm(f=>({...f,floors:e.target.value}))} placeholder="عدد الأدوار" style={{padding:8,borderRadius:8}} />
         <label style={{display:'flex',alignItems:'center',gap:4}}><input type="checkbox" checked={form.hasGarden} onChange={e=>setForm(f=>({...f,hasGarden:e.target.checked}))} />حديقة</label>
         <label style={{display:'flex',alignItems:'center',gap:4}}><input type="checkbox" checked={form.hasPool} onChange={e=>setForm(f=>({...f,hasPool:e.target.checked}))} />مسبح</label>
+        {/* اختيار المطور */}
+        <select value={form.developerId} onChange={e=>setForm(f=>({...f,developerId:e.target.value}))} style={{padding:8,borderRadius:8}}>
+          <option value="">اختر المطور</option>
+          {developers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
+        {/* اختيار الكمباوند */}
+        <select value={form.compound} onChange={e=>setForm(f=>({...f,compound:e.target.value}))} style={{padding:8,borderRadius:8}}>
+          <option value="">اختر الكمباوند</option>
+          {compounds.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+        </select>
+        <input value={form.employee} onChange={e=>setForm(f=>({...f,employee:e.target.value}))} placeholder="اسم الموظف" style={{padding:8,borderRadius:8}} />
         <input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="رقم التواصل" style={{padding:8,borderRadius:8}} />
         <input value={form.whatsapp} onChange={e=>setForm(f=>({...f,whatsapp:e.target.value}))} placeholder="واتساب" style={{padding:8,borderRadius:8}} />
-        <input value={form.lat} onChange={e=>setForm(f=>({...f,lat:e.target.value}))} placeholder="خط العرض (lat)" style={{padding:8,borderRadius:8}} />
-        <input value={form.lng} onChange={e=>setForm(f=>({...f,lng:e.target.value}))} placeholder="خط الطول (lng)" style={{padding:8,borderRadius:8}} />
+        {/* اختيار الموقع من الخريطة */}
+        <div style={{display:'flex',alignItems:'center',gap:4}}>
+          <input value={form.lat} onChange={e=>setForm(f=>({...f,lat:e.target.value}))} placeholder="خط العرض (lat)" style={{padding:8,borderRadius:8}} />
+          <input value={form.lng} onChange={e=>setForm(f=>({...f,lng:e.target.value}))} placeholder="خط الطول (lng)" style={{padding:8,borderRadius:8}} />
+          <button type="button" onClick={()=>setShowMap(true)} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 12px',fontWeight:'bold'}}>اختر من الخريطة</button>
+        </div>
         <input value={form.vrUrl} onChange={e=>setForm(f=>({...f,vrUrl:e.target.value}))} placeholder="رابط VR" style={{padding:8,borderRadius:8}} />
         <input value={form.panoramaUrl} onChange={e=>setForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط بانوراما" style={{padding:8,borderRadius:8}} />
         <input value={form.model3dUrl} onChange={e=>setForm(f=>({...f,model3dUrl:e.target.value}))} placeholder="رابط نموذج 3D" style={{padding:8,borderRadius:8}} />
@@ -128,6 +146,14 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
             {imageFiles.map((file,i)=>(
               <img key={i} src={URL.createObjectURL(file)} alt="معاينة" style={{width:48,height:48,borderRadius:8,objectFit:'cover',border:'1.5px solid #00bcd4'}} />
             ))}
+          </div>
+        )}
+        {/* معاينة VR/بانوراما/3D */}
+        {(form.vrUrl || form.panoramaUrl || form.model3dUrl) && (
+          <div style={{display:'flex',gap:12,margin:'8px 0'}}>
+            {form.vrUrl && <iframe src={form.vrUrl} title="VR" style={{width:120,height:80,borderRadius:8,border:'1.5px solid #00bcd4'}} />}
+            {form.panoramaUrl && <iframe src={form.panoramaUrl} title="بانوراما" style={{width:120,height:80,borderRadius:8,border:'1.5px solid #00bcd4'}} />}
+            {form.model3dUrl && <iframe src={form.model3dUrl} title="3D" style={{width:120,height:80,borderRadius:8,border:'1.5px solid #00bcd4'}} />}
           </div>
         )}
         {coOwnershipMode && (
@@ -221,6 +247,24 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
             ))}
           </tbody>
         </table>
+      )}
+      {/* خريطة اختيار الموقع */}
+      {showMap && (
+        <div style={{position:'fixed',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.8)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#fff',borderRadius:16,overflow:'hidden',width:'90%',maxWidth:800}}>
+            <div style={{padding:16,background:'#00bcd4',color:'#fff',fontWeight:'bold',fontSize:18}}>اختر موقع الوحدة على الخريطة</div>
+            <div style={{position:'relative',width:'100%',paddingTop:'56.25%'}}>
+              <iframe src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${form.lat},${form.lng}`} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',border:'none'}} allowFullScreen />
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:12}}>
+              <button onClick={()=>setShowMap(false)} style={{background:'#e91e63',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>إغلاق</button>
+              <button onClick={()=>{
+                setForm(f=>({...f,lat:form.lat,lng:form.lng}));
+                setShowMap(false);
+              }} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>تأكيد الموقع</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

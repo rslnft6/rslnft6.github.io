@@ -22,17 +22,26 @@ import UnitsPanel from './UnitsPanel';
 import DevelopersPanel from './DevelopersPanel';
 import MarketersPanel from './MarketersPanel';
 import BottomGlassNav from './BottomGlassNav';
+import CompoundsPanel from './CompoundsPanel';
+import AdsPanel from './AdsPanel';
+import AboutPanel from './AboutPanel';
+import PartnersPanel from './PartnersPanel';
+import ContactsPanel from './ContactsPanel';
+import SettingsPanel from './SettingsPanel';
 
 console.log('=== AdminPanel.tsx Mounted ===');
 let debugStep = 'AdminPanel mounted';
 
 const TABS = [
-  { key: 'الوحدات', label: 'الوحدات' },
-  { key: 'المطورين', label: 'المطورين' },
-  { key: 'المستخدمون', label: 'المستخدمون' },
-  { key: 'الإعلانات', label: 'الإعلانات' },
-  { key: 'الإعدادات', label: 'الإعدادات' },
-  { key: 'marketers', label: 'الماركين' },
+  { key: 'dashboard', label: 'لوحة البيانات' },
+  { key: 'units', label: 'الوحدات' },
+  { key: 'compounds', label: 'الكمباوندات' },
+  { key: 'employees', label: 'الموظفون' },
+  { key: 'ads', label: 'الإعلانات' },
+  { key: 'about', label: 'من نحن' },
+  { key: 'partners', label: 'شركاؤنا' },
+  { key: 'contacts', label: 'تواصل معنا' },
+  { key: 'settings', label: 'الإعدادات' },
 ];
 
 function usePersistedState<T>(key: string, initial: T) {
@@ -353,7 +362,7 @@ const AdminPanel: React.FC = () => {
       const email = userForm.username + '@app.local';
       const cred = await createUserWithEmailAndPassword(auth, email, userForm.password);
       await updateProfile(cred.user, { displayName: userForm.name });
-      // إضافة المستخدم إلى Firestore
+      // إضافة المستخدم إلى Fire
       await addDoc(collection(db, 'users'), {
         name: userForm.name,
         username: userForm.username,
@@ -646,7 +655,7 @@ const AdminPanel: React.FC = () => {
       <div style={{
         flex:1,
         padding:'48px 2vw 48px 2vw',
-        background:'rgba(255,255,255,0.55)', // طبقة زجاجية إضافية
+        background:'rgba(255,255,255,0.55)',
         minHeight:'100vh',
         display:'flex',
         flexDirection:'column',
@@ -656,88 +665,41 @@ const AdminPanel: React.FC = () => {
         transition:'all 0.3s cubic-bezier(.4,2,.6,1)'
       }}>
         <div style={{flex:1}}>
-          {/* توحيد الثيم الزجاجي للنماذج والجداول */}
-          <style>{`
-            .glass-form, .glass-table, .glass-card {
-              background: rgba(255,255,255,0.32);
-              border-radius: 20px;
-              box-shadow: 0 2px 16px #00bcd422;
-              backdrop-filter: blur(14px);
-              border: 1.5px solid rgba(0,188,212,0.10);
-              padding: 28px 24px;
-              margin-bottom: 32px;
-              transition: box-shadow 0.2s;
-            }
-            .glass-form input, .glass-form select, .glass-form textarea {
-              background: rgba(255,255,255,0.45);
-              border: 1.5px solid rgba(0,188,212,0.13);
-              border-radius: 12px;
-              padding: 12px 16px;
-              font-size: 17px;
-              margin-bottom: 16px;
-              box-shadow: 0 1px 6px #00bcd422;
-              outline: none;
-              transition: border 0.2s, box-shadow 0.2s;
-            }
-            .glass-form input:focus, .glass-form select:focus, .glass-form textarea:focus {
-              border: 1.5px solid #00bcd4;
-              box-shadow: 0 2px 12px #00bcd433;
-            }
-            .glass-btn {
-              background: linear-gradient(120deg,rgba(255,255,255,0.65) 0%,rgba(0,188,212,0.18) 100%);
-              color: #00bcd4;
-              border: none;
-              border-radius: 14px;
-              padding: 12px 28px;
-              font-size: 18px;
-              font-weight: bold;
-              box-shadow: 0 2px 12px #00bcd422;
-              cursor: pointer;
-              margin: 8px 0;
-              transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-            }
-            .glass-btn:hover {
-              background: linear-gradient(120deg,rgba(0,188,212,0.13) 0%,rgba(255,255,255,0.85) 100%);
-              color: #fff;
-              box-shadow: 0 4px 24px #00bcd433;
-            }
-            .glass-table table {
-              width: 100%;
-              border-collapse: separate;
-              border-spacing: 0;
-              background: transparent;
-            }
-            .glass-table th, .glass-table td {
-              background: rgba(255,255,255,0.22);
-              border-radius: 10px;
-              padding: 12px 16px;
-              color: #222;
-              font-size: 16px;
-              border-bottom: 1.5px solid rgba(0,188,212,0.08);
-            }
-            .glass-table th {
-              color: #00bcd4;
-              font-weight: bold;
-              background: rgba(0,188,212,0.08);
-            }
-            .glass-table tr:last-child td {
-              border-bottom: none;
-            }
-          `}</style>
-          {/* باقي الكود كما هو، فقط أضف className="glass-form" للنماذج وclassName="glass-table" للجداول وclassName="glass-btn" للأزرار */}
+          {/* تبويب الوحدات */}
+          {section==='units' && (
+            <UnitsPanel />
+          )}
+          {/* تبويب الكمباوندات */}
+          {section==='compounds' && (
+            <CompoundsPanel />
+          )}
+          {/* تبويب الموظفين */}
+          {section==='employees' && (
+            <EmployeesPanel />
+          )}
+          {/* تبويب الإعلانات */}
+          {section==='ads' && (
+            <AdsPanel />
+          )}
+          {/* تبويب من نحن */}
+          {section==='about' && (
+            <AboutPanel />
+          )}
+          {/* تبويب الشركاء */}
+          {section==='partners' && (
+            <PartnersPanel />
+          )}
+          {/* تبويب تواصل معنا */}
+          {section==='contacts' && (
+            <ContactsPanel />
+          )}
+          {/* تبويب الإعدادات */}
+          {section==='settings' && (
+            <SettingsPanel />
+          )}
+          {/* لوحة البيانات */}
           {section==='dashboard' && <DashboardStats />}
-          {section==='all-employees' && <EmployeesPanel />}
-          {section==='all-units' && <>
-            <SmartUnitSearch units={units} />
-            <UnitsPanel coOwnershipMode />
-          </>}
-          {section==='all-developers' && <DevelopersPanel />}
-          {section==='marketers' && <MarketersPanel />}
-          {/* باقي الأقسام */}
         </div>
-        {(currentUser && (currentUser.role === 'مدير' || currentUser.role === 'إدارة')) && (
-          <ViewsAnalyticsPanel />
-        )}
         <BottomGlassNav />
       </div>
     </div>
