@@ -267,7 +267,8 @@ export default function Home() {
       if (typeof window !== 'undefined') localStorage.setItem('recentlyViewed', JSON.stringify(updated));
       return updated;
     });
-    window.location.href = `/property/${id}`;
+    // التنقل باستخدام router بدلاً من window.location.href لتجنب 404
+    push(`/property/${id}`);
   };
   // تحميل آخر وحدات تم تصفحها من localStorage
   useEffect(() => {
@@ -697,16 +698,16 @@ export default function Home() {
           </Swiper>
           {/* شريط المقارنة العائم */}
           {compare.length > 0 && (
-            <div style={{position:'fixed',bottom:100,right:24,zIndex:9999,background:'rgba(255,255,255,0.92)',boxShadow:'0 2px 16px #00bcd422',borderRadius:18,padding:'18px 28px',display:'flex',alignItems:'center',gap:16,backdropFilter:'blur(10px)'}}>
-              <span style={{fontWeight:'bold',color:'#00bcd4',fontSize:18}}>مقارنة ({compare.length}/3)</span>
+            <div style={{position:'fixed',bottom:32,right:32,zIndex:9999,background:'rgba(255,255,255,0.97)',boxShadow:'0 4px 24px #00bcd433',borderRadius:24,padding:'22px 36px',display:'flex',alignItems:'center',gap:20,backdropFilter:'blur(14px)',minWidth:320}}>
+              <span style={{fontWeight:'bold',color:'#00bcd4',fontSize:22}}>مقارنة ({compare.length}/3)</span>
               {compare.map(id => {
                 const unit = allProperties.find(u => u.id === id);
                 return unit ? (
-                  <span key={id} style={{background:'#00bcd4',color:'#fff',borderRadius:8,padding:'4px 12px',fontWeight:'bold',fontSize:15,marginLeft:4}}>{unit.title}</span>
+                  <span key={id} style={{background:'#00bcd4',color:'#fff',borderRadius:12,padding:'6px 18px',fontWeight:'bold',fontSize:18,marginLeft:4}}>{unit.title}</span>
                 ) : null;
               })}
-              <button className="glass-btn" style={{margin:0,padding:'8px 18px',fontSize:16}} onClick={()=>window.location.href='/compare?ids='+compare.join(',')}>عرض المقارنة</button>
-              <button className="glass-btn" style={{margin:0,padding:'8px 18px',fontSize:16,background:'#e53935',color:'#fff'}} onClick={()=>setCompare([])}>مسح</button>
+              <button className="glass-btn" style={{margin:0,padding:'10px 24px',fontSize:18}} onClick={()=>window.location.href='/compare?ids='+compare.join(',')}>عرض المقارنة</button>
+              <button className="glass-btn" style={{margin:0,padding:'10px 24px',fontSize:18,background:'#e53935',color:'#fff'}} onClick={()=>setCompare([])}>مسح</button>
             </div>
           )}
           {/* الدردشة الذكية العائمة */}
@@ -757,10 +758,11 @@ export default function Home() {
     textAlign: 'center',
     letterSpacing: 1
   }}>
-    <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:18,flexWrap:'wrap'}}>
-      <button onClick={()=>window.location.href='/about'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>من نحن</button>
-      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
-      <button onClick={()=>window.location.href='/partners'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
+    {/* أزرار كبيرة وواضحة بأسفل الصفحة */}
+    <div style={{display:'flex',justifyContent:'center',gap:32,marginBottom:28,flexWrap:'wrap'}}>
+      <button onClick={()=>window.location.href='/about'} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>من نحن</button>
+      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
+      <button onClick={()=>window.location.href='/partners'} style={{background:'linear-gradient(120deg,#fff 0%,#00bcd4 100%)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:32,padding:'24px 64px',fontWeight:'bold',fontSize:28,cursor:'pointer',boxShadow:'0 4px 24px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
     </div>
     {/* نبذة من نحن */}
     {/* تم إلغاء عرض النبذة هنا بناءً على طلب المستخدم */}
