@@ -74,7 +74,7 @@ export default function Home() {
   const [purpose, setPurpose] = useState(''); // إضافة حالة الفلترة للبيع/إيجار
   const [selectedPanorama, setSelectedPanorama] = useState<string | null>(null);
   const [pendingFilters, setPendingFilters] = useState({
-    search: '', type: '', country: '', compound: '', developer: '', finance: '', purpose: ''
+    search: '', type: '', country: '', compound: '', developer: '', finance: '', purpose: '', maxUnits: ''
   });
   const [chatOpen, setChatOpen] = useState(false);
   const [firebaseUnits, setFirebaseUnits] = useState<any[]>([]);
@@ -83,6 +83,7 @@ export default function Home() {
   const [showAbout, setShowAbout] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const [maxUnits, setMaxUnits] = useState<number|undefined>(undefined);
 
   // البحث الذكي
   const handleSmartSearch = (q: string) => {
@@ -111,6 +112,7 @@ export default function Home() {
     setDeveloper(pendingFilters.developer);
     setFinance(pendingFilters.finance);
     setPurpose(pendingFilters.purpose);
+    setMaxUnits(Number(pendingFilters.maxUnits) || undefined);
   };
 
   // جلب الوحدات من Firestore
@@ -130,9 +132,9 @@ export default function Home() {
     (!country || (p.location && p.location.includes(country))) &&
     (!compound || p.compound === compound) &&
     (!developer || p.developer === developer || p.developerId === developer) &&
-    (!finance || (finance === 'تمويل عقاري' ? p.finance === 'تمويل عقاري' : true)) &&
-    (!purpose || p.purpose === purpose) // تحديث الفلترة لتشمل الغرض
-  );
+    (!finance || (finance === 'تمويل عقاري' ? p.finance === 'تمويل عقاري' : finance === 'نقدي' ? p.finance === 'نقدي' : finance === 'أقساط' ? p.finance === 'أقساط' : finance === 'إعادة بيع' ? p.finance === 'إعادة بيع' : true)) &&
+    (!purpose || p.purpose === purpose)
+  ).slice(0, maxUnits || 100);
 
   useEffect(() => {
     if (filtered.length > 0 && search.length > 2) {
@@ -142,7 +144,7 @@ export default function Home() {
 
   useEffect(() => {
     setPendingFilters({
-      search, type, country, compound, developer, finance, purpose
+      search, type, country, compound, developer, finance, purpose, maxUnits: pendingFilters.maxUnits || ''
     });
   }, [search, type, country, compound, developer, finance, purpose]);
 
@@ -222,9 +224,9 @@ export default function Home() {
       borderRadius: 24,
       boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
       // جعل الخلفية ديناميكية من لوحة التحكم
-      background: backgrounds.length > 0 ?
-        backgrounds.map(bg => bg.type === 'image' ? `url(${bg.url})` : bg.color).join(',') :
-        'linear-gradient(135deg,rgba(255,255,255,0.92) 0%,rgba(0,188,212,0.10) 100%)',
+      background: backgrounds.length > 0
+        ? `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)),` + backgrounds.map(bg => `url(${bg})`).join(',')
+        : 'rgba(255,255,255,1)',
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
@@ -411,12 +413,10 @@ export default function Home() {
               <option value="">كل خيارات التمويل</option>
               <option value="تمويل عقاري">تمويل عقاري</option>
               <option value="نقدي">نقدي</option>
+              <option value="أقساط">أقساط</option>
+              <option value="إعادة بيع">إعادة بيع</option>
             </select>
-            <select value={pendingFilters.purpose} onChange={e => handleFilterChange('purpose', e.target.value)} style={{color:'#ff9800',fontWeight:'bold',marginLeft:8,minWidth:120,flex:'1 1 120px'}}>
-              <option value="">الكل</option>
-              <option value="للبيع">للبيع</option>
-              <option value="للإيجار">للإيجار</option>
-            </select>
+            <input type="number" min="1" max="100" placeholder="حد أقصى للوحدات" value={pendingFilters.maxUnits || ''} onChange={e => handleFilterChange('maxUnits', e.target.value)} style={{fontSize:18,border:'1px solid #00bcd4',borderRadius:8,padding:8,minWidth:120,flex:'1 1 120px',marginLeft:8}} />
             <button onClick={applyFilters} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 24px',fontWeight:'bold',fontSize:16,marginLeft:8,cursor:'pointer'}}>بحث</button>
           </div>
           {/* الوحدات الأكثر مشاهدة بناءً على الفلترة */}
