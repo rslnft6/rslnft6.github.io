@@ -13,15 +13,30 @@ export default function ContactPage() {
       <button onClick={()=>setShowContacts(!showContacts)} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'12px 32px',fontWeight:'bold',fontSize:20,cursor:'pointer',marginBottom:24}}>إظهار وسائل التواصل</button>
       {showContacts && (
         <div style={{marginTop:8,display:'flex',flexWrap:'wrap',justifyContent:'center',gap:18}}>
-          <a href={`https://wa.me/${contacts.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{color:'#25d366',fontSize:28}} title="واتساب"><FaWhatsapp /></a>
-          <a href={`tel:${contacts.phone}`} style={{color:'#00bcd4',fontSize:28}} title="اتصال"><FaPhone /></a>
-          <a href={contacts.facebook} target="_blank" rel="noopener noreferrer" style={{color:'#1877f3',fontSize:28}} title="فيسبوك"><FaFacebook /></a>
-          <a href={contacts.snapchat} target="_blank" rel="noopener noreferrer" style={{color:'#fffc00',fontSize:28}} title="سناب شات"><FaSnapchatGhost /></a>
-          <a href={contacts.twitter} target="_blank" rel="noopener noreferrer" style={{color:'#1da1f2',fontSize:28}} title="تويتر"><FaTwitter /></a>
-          <a href={contacts.instagram} target="_blank" rel="noopener noreferrer" style={{color:'#e1306c',fontSize:28}} title="انستجرام"><FaInstagram /></a>
-          <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" style={{color:'#0088cc',fontSize:28}} title="تيليجرام"><FaTelegram /></a>
-          <a href={contacts.discord} target="_blank" rel="noopener noreferrer" style={{color:'#5865f2',fontSize:28}} title="ديسكورد"><FaDiscord /></a>
-          <a href={contacts.gmail} target="_blank" rel="noopener noreferrer" style={{color:'#00bcd4',fontSize:28}} title="Gmail"><FaEnvelope /></a>
+          {contacts.map((contact) => {
+            switch(contact.id) {
+              case 'whatsapp':
+                return <a key={contact.id} href={`https://wa.me/${contact.url}`} target="_blank" rel="noopener noreferrer" style={{color:'#25d366',fontSize:28}} title="واتساب"><FaWhatsapp /></a>;
+              case 'phone':
+                return <a key={contact.id} href={`tel:${contact.url}`} style={{color:'#00bcd4',fontSize:28}} title="اتصال"><FaPhone /></a>;
+              case 'facebook':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#1877f3',fontSize:28}} title="فيسبوك"><FaFacebook /></a>;
+              case 'snapchat':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#fffc00',fontSize:28}} title="سناب شات"><FaSnapchatGhost /></a>;
+              case 'twitter':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#1da1f2',fontSize:28}} title="تويتر"><FaTwitter /></a>;
+              case 'instagram':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#e1306c',fontSize:28}} title="انستجرام"><FaInstagram /></a>;
+              case 'telegram':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#0088cc',fontSize:28}} title="تيليجرام"><FaTelegram /></a>;
+              case 'discord':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#5865f2',fontSize:28}} title="ديسكورد"><FaDiscord /></a>;
+              case 'gmail':
+                return <a key={contact.id} href={contact.url} target="_blank" rel="noopener noreferrer" style={{color:'#00bcd4',fontSize:28}} title="Gmail"><FaEnvelope /></a>;
+              default:
+                return null;
+            }
+          })}
         </div>
       )}
       <div style={{margin:'32px 0'}}>
