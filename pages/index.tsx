@@ -7,7 +7,6 @@ import { getAllProperties, projects } from "../data/properties";
 import dynamic from 'next/dynamic';
 const ModelViewer = dynamic(() => import('../components/ModelViewer'), { ssr: false });
 import { useTranslation } from 'react-i18next';
-import VRView from '../components/VRView';
 import { useState, useEffect } from 'react';
 import { backgrounds } from '../data/backgrounds';
 import { compounds } from '../data/compounds';
@@ -461,10 +460,6 @@ export default function Home() {
               تعذر تحميل الخريطة. تأكد من اتصالك بالإنترنت أو أعد تحميل الصفحة.
             </div>
           </div>
-          <h1 className="section-title">تجربة الواقع الافتراضي (VR)</h1>
-          <div className="vr-section">
-            <VRView src="" />
-          </div>
           {/* <Reviews /> */}
           {/* <StatsBox /> */}
           {/* <AdminPanel /> تم إزالته من الصفحة الرئيسية */}
@@ -486,15 +481,7 @@ export default function Home() {
         padding:'12px 0',
         zIndex:1000
       }}>
-        <button onClick={()=>window.location.href='/about'} title="من نحن" style={{background:'rgba(0,188,212,0.12)',border:'2px solid #00bcd4',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#00bcd4',fontSize:22}}>
-          <span role="img" aria-label="about">👤</span>
-        </button>
-        <button onClick={()=>window.location.href='/partners'} title="شركاؤنا" style={{background:'rgba(255,152,0,0.12)',border:'2px solid #ff9800',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#ff9800',fontSize:22}}>
-          <span role="img" aria-label="partners">🤝</span>
-        </button>
-        <button onClick={()=>setShowContacts(!showContacts)} title="تواصل معنا" style={{background:'rgba(76,175,80,0.12)',border:'2px solid #4caf50',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#4caf50',fontSize:22}}>
-          <span role="img" aria-label="contact">✉️</span>
-        </button>
+        {/* تم حذف أزرار من نحن وشركاؤنا وتواصل معنا بناءً على طلب المستخدم */}
       </nav>
       <footer style={{background:'#f5f7fa',color:'#222',padding:'32px 0 16px 0',marginTop:40}}>
   <div style={{
@@ -510,11 +497,7 @@ export default function Home() {
     textAlign: 'center',
     letterSpacing: 1
   }}>
-    <div style={{display:'flex',justifyContent:'center',gap:16,marginBottom:18,flexWrap:'wrap'}}>
-      <button onClick={()=>window.location.href='/about'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>من نحن</button>
-      <button onClick={()=>setShowContacts(!showContacts)} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>تواصل معنا</button>
-      <button onClick={()=>window.location.href='/partners'} style={{background:'rgba(255,255,255,0.55)',backdropFilter:'blur(12px)',color:'#00bcd4',border:'none',borderRadius:16,padding:'18px 44px',fontWeight:'bold',fontSize:24,cursor:'pointer',boxShadow:'0 2px 16px #00bcd422',transition:'0.2s'}}>شركاؤنا</button>
-    </div>
+    {/* تم حذف أزرار من نحن وشركاؤنا وتواصل معنا من الفوتر بناءً على طلب المستخدم */}
     {/* نبذة من نحن */}
     {/* تم إلغاء عرض النبذة هنا بناءً على طلب المستخدم */}
     {/* أيقونات التواصل */}
