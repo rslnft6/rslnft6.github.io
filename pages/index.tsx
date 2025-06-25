@@ -221,13 +221,20 @@ export default function Home() {
       minHeight: '100vh',
       borderRadius: 24,
       boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
-      background: 'linear-gradient(135deg,rgba(255,255,255,0.92) 0%,rgba(0,188,212,0.10) 100%)',
+      // جعل الخلفية ديناميكية من لوحة التحكم
+      background: backgrounds.length > 0 ?
+        backgrounds.map(bg => bg.type === 'image' ? `url(${bg.url})` : bg.color).join(',') :
+        'linear-gradient(135deg,rgba(255,255,255,0.92) 0%,rgba(0,188,212,0.10) 100%)',
+      backgroundSize: 'cover',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
       backdropFilter: 'blur(24px)',
       padding:0,
       margin:0,
       width:'100vw',
       overflow:'hidden',
-      position:'relative'
+      position:'relative',
+      backgroundColor: 'rgba(255,255,255,0.85)', // طبقة شفافة عصرية
     }}>
       <Head>
         <title>تطبيق عقارات عالمي</title>
