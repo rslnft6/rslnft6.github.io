@@ -292,46 +292,18 @@ export default function Home() {
           justifyContent:'center',
           padding:'0 0 48px 0',
         }}>
-          {/* سلايدر الإعلانات أعلى الصفحة */}
-          <div style={{width:'100%',overflow:'hidden',margin:'32px 0 8px 0',direction:'ltr'}}>
-            <div style={{
-              display:'flex',
-              gap:24,
-              animation:'slider-horizontal 24s linear infinite',
-              alignItems:'center',
-              minWidth:'100%'
-            }}>
-              {(sliderImages.length === 0 ? [
-                {img: '/images/bg1.png', id: 1, details: 'إعلان افتراضي 1'},
-                {img: '/images/bg2.png', id: 2, details: 'إعلان افتراضي 2'},
-                {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3'}
-              ] : sliderImages.map((img, i) => ({img, id: i, details: `تفاصيل الإعلان ${i+1}`}))).map((ad, i) => (
-                <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
-                  <a href={`/ads/${ad.id}`} style={{display:'block'}}>
-                    <img src={ad.img} alt={`ad${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer'}} />
-                  </a>
-                  <span style={{marginTop:8,color:'#00bcd4',fontWeight:'bold',fontSize:16}}>{ad.details}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <style>{`
-            @keyframes slider-horizontal {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-          `}</style>
           {/* شريط إعلانات متحرك ديناميكي من لوحة التحكم */}
           <div style={{
             width:'100%',
             overflow:'hidden',
-            margin:'0 auto 16px auto',
+            margin:'0 auto 0 auto', // إزالة الهامش السفلي
             direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
             background: 'linear-gradient(90deg,#00bcd4 0%,#2196f3 100%)',
             borderRadius: 16,
-            boxShadow: '0 2px 16px #00bcd422',
+            // إزالة الظل
+            // boxShadow: '0 2px 16px #00bcd422',
             padding: '8px 0',
-            marginBottom: 16
+            // marginBottom: 16
           }}>
             <div style={{
               display:'inline-block',
@@ -359,6 +331,35 @@ export default function Home() {
             @keyframes marquee {
               0% { transform: translateX(100%); }
               100% { transform: translateX(-100%); }
+            }
+          `}</style>
+          {/* سلايدر الإعلانات أعلى الصفحة */}
+          <div style={{width:'100%',overflow:'hidden',margin:'32px 0 8px 0',direction:'ltr'}}>
+            <div style={{
+              display:'flex',
+              gap:24,
+              animation:'slider-horizontal 24s linear infinite',
+              alignItems:'center',
+              minWidth:'100%'
+            }}>
+              {(sliderImages.length === 0 ? [
+                {img: '/images/bg1.png', id: 1, details: 'إعلان افتراضي 1'},
+                {img: '/images/bg2.png', id: 2, details: 'إعلان افتراضي 2'},
+                {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3'}
+              ] : sliderImages.map((img, i) => ({img, id: i, details: `تفاصيل الإعلان ${i+1}`}))).map((ad, i) => (
+                <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+                  <a href={`/ads/${ad.id}`} style={{display:'block'}}>
+                    <img src={ad.img} alt={`ad${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer'}} />
+                  </a>
+                  <span style={{marginTop:8,color:'#00bcd4',fontWeight:'bold',fontSize:16}}>{ad.details}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <style>{`
+            @keyframes slider-horizontal {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
             }
           `}</style>
           {/* الفلاتر */}
