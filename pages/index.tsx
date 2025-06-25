@@ -165,7 +165,14 @@ export default function Home() {
   }, []);
 
   // جلب إعدادات الشريط المتحرك من فايرستور
-  const [marquee, setMarquee] = useState({ texts: ["فرحنا بوجودك معنا!"], speed: 30, color: "#ff9800", fontSize: 20 });
+  interface MarqueeSettings {
+    texts: (string | { [lang: string]: string })[];
+    speed: number;
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+  }
+  const [marquee, setMarquee] = useState<MarqueeSettings>({ texts: ["فرحنا بوجودك معنا!"], speed: 30, color: "#ff9800", fontSize: 20 });
   useEffect(() => {
     async function fetchMarquee() {
       try {
@@ -177,7 +184,8 @@ export default function Home() {
             texts: d.texts || ["فرحنا بوجودك معنا!"],
             speed: d.speed || 30,
             color: d.color || "#ff9800",
-            fontSize: d.fontSize || 20
+            fontSize: d.fontSize || 20,
+            fontFamily: d.fontFamily || undefined
           });
         }
       } catch {}
@@ -285,26 +293,67 @@ export default function Home() {
           justifyContent:'center',
           padding:'0 0 48px 0',
         }}>
-          {/* شعار Realstatelive أعلى الصفحة */}
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',margin:'32px 0 8px 0'}}>
-            <img src="/images/logo1.png" alt="Realstatelive logo" style={{width:60,marginLeft:12}} />
-            <span style={{fontWeight:'bold',fontSize:36,color:'#00bcd4',letterSpacing:2,textShadow:'0 2px 8px #e0e0e0'}}>Realstatelive</span>
+          {/* سلايدر الإعلانات أعلى الصفحة */}
+          <div style={{width:'100%',overflow:'hidden',margin:'32px 0 8px 0',direction:'ltr'}}>
+            <div style={{
+              display:'flex',
+              gap:24,
+              animation:'slider-horizontal 24s linear infinite',
+              alignItems:'center',
+              minWidth:'100%'
+            }}>
+              {(sliderImages.length === 0 ? [
+                {img: '/images/bg1.png', id: 1, details: 'إعلان افتراضي 1'},
+                {img: '/images/bg2.png', id: 2, details: 'إعلان افتراضي 2'},
+                {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3'}
+              ] : sliderImages.map((img, i) => ({img, id: i, details: `تفاصيل الإعلان ${i+1}`}))).map((ad, i) => (
+                <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+                  <a href={`/ads/${ad.id}`} style={{display:'block'}}>
+                    <img src={ad.img} alt={`ad${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer'}} />
+                  </a>
+                  <span style={{marginTop:8,color:'#00bcd4',fontWeight:'bold',fontSize:16}}>{ad.details}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          {/* شريط إعلانات متحرك ديناميكي */}
-          <div style={{width:'100%',overflow:'hidden',margin:'0 auto 16px auto',direction:'rtl'}}>
+          <style>{`
+            @keyframes slider-horizontal {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+          `}</style>
+          {/* شريط إعلانات متحرك ديناميكي من لوحة التحكم */}
+          <div style={{
+            width:'100%',
+            overflow:'hidden',
+            margin:'0 auto 16px auto',
+            direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
+            background: 'linear-gradient(90deg,#00bcd4 0%,#2196f3 100%)',
+            borderRadius: 16,
+            boxShadow: '0 2px 16px #00bcd422',
+            padding: '8px 0',
+            marginBottom: 16
+          }}>
             <div style={{
               display:'inline-block',
               whiteSpace:'nowrap',
               animation:`marquee ${marquee.speed}s linear infinite`,
-              color:marquee.color,
+              color: marquee.color,
               fontWeight:'bold',
-              fontSize:marquee.fontSize,
+              fontSize: marquee.fontSize,
+              fontFamily: marquee.fontFamily || 'Cairo, Tahoma, Arial, sans-serif',
+              letterSpacing: 1,
               padding:'8px 0',
               minWidth:'100%'
             }}>
-              {marquee.texts.map((txt,i)=>(
-                <span key={i} style={{marginRight:40}}>{txt}</span>
-              ))}
+              {marquee.texts && marquee.texts.length > 0 ?
+                marquee.texts.map((txt,i)=>{
+                  if (typeof txt === 'string') return <span key={i} style={{marginRight:40}}>{txt}</span>;
+                  if (typeof txt === 'object' && txt !== null) return <span key={i} style={{marginRight:40}}>{txt[i18n.language] || txt['ar'] || Object.values(txt)[0]}</span>;
+                  return null;
+                }) :
+                <span>مرحباً بك في منصتنا العقارية!</span>
+              }
             </div>
           </div>
           <style>{`
@@ -367,34 +416,6 @@ export default function Home() {
             </select>
             <button onClick={applyFilters} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 24px',fontWeight:'bold',fontSize:16,marginLeft:8,cursor:'pointer'}}>بحث</button>
           </div>
-          {/* سلايدر صور متحرك ديناميكي */}
-          <div style={{width:'100%',overflow:'hidden',margin:'0 auto 24px auto',direction:'ltr'}}>
-            <div style={{
-              display:'flex',
-              gap:24,
-              animation:'slider-horizontal 24s linear infinite',
-              alignItems:'center',
-              minWidth:'100%'
-            }}>
-              {sliderImages.length === 0 ? (
-                <>
-                  <img src="/images/bg1.png" alt="bg1" style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0'}} />
-                  <img src="/images/bg2.png" alt="bg2" style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0'}} />
-                  <img src="/images/bg10.jpg" alt="bg10" style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0'}} />
-                </>
-              ) : (
-                sliderImages.concat(sliderImages).map((img,i)=>(
-                  <img key={i} src={img} alt={`slider${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0'}} />
-                ))
-              )}
-            </div>
-          </div>
-          <style>{`
-            @keyframes slider-horizontal {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-          `}</style>
           {/* الوحدات الأكثر مشاهدة بناءً على الفلترة */}
           <div style={{display:'flex',alignItems:'center',gap:8,margin:'24px 0 8px 0',justifyContent:'center'}}>
             <img src="/images/logo1.png" alt="logo" style={{width:36}} />
@@ -449,6 +470,32 @@ export default function Home() {
           {/* <AdminPanel /> تم إزالته من الصفحة الرئيسية */}
         </main>
       </div>
+      <footer style={{height:80}} />
+      {/* شريط مهام سفلي للأيقونات */}
+      <nav style={{
+        position:'fixed',
+        bottom:0,
+        left:0,
+        width:'100vw',
+        background:'rgba(255,255,255,0.85)',
+        boxShadow:'0 -2px 16px #00bcd422',
+        display:'flex',
+        justifyContent:'center',
+        alignItems:'center',
+        gap:32,
+        padding:'12px 0',
+        zIndex:1000
+      }}>
+        <button onClick={()=>window.location.href='/about'} title="من نحن" style={{background:'rgba(0,188,212,0.12)',border:'2px solid #00bcd4',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#00bcd4',fontSize:22}}>
+          <span role="img" aria-label="about">👤</span>
+        </button>
+        <button onClick={()=>window.location.href='/partners'} title="شركاؤنا" style={{background:'rgba(255,152,0,0.12)',border:'2px solid #ff9800',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#ff9800',fontSize:22}}>
+          <span role="img" aria-label="partners">🤝</span>
+        </button>
+        <button onClick={()=>setShowContacts(!showContacts)} title="تواصل معنا" style={{background:'rgba(76,175,80,0.12)',border:'2px solid #4caf50',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer',transition:'all 0.2s',color:'#4caf50',fontSize:22}}>
+          <span role="img" aria-label="contact">✉️</span>
+        </button>
+      </nav>
       <footer style={{background:'#f5f7fa',color:'#222',padding:'32px 0 16px 0',marginTop:40}}>
   <div style={{
     background: 'linear-gradient(90deg,#00bcd4 0%,#2196f3 100%)',

@@ -642,10 +642,10 @@ const AdminPanel: React.FC = () => {
       direction:'rtl',
       minHeight:'100vh',
       width:'100vw',
-      background:'linear-gradient(120deg,rgba(255,255,255,0.85) 0%,rgba(0,188,212,0.08) 100%)', // خلفية زجاجية بيضاء
+      background:'linear-gradient(120deg,rgba(255,255,255,0.85) 0%,rgba(0,188,212,0.08) 100%)',
       backdropFilter:'blur(24px)',
       boxShadow:'0 8px 48px 0 #00bcd422',
-      borderRadius: '0 0 48px 48px',
+      borderRadius: 0,
       border:'none',
       overflow:'hidden',
       margin:0,
@@ -654,14 +654,14 @@ const AdminPanel: React.FC = () => {
       <GlassSidebarDeep section={section} setSection={setSection} />
       <div style={{
         flex:1,
-        padding:'48px 2vw 48px 2vw',
-        background:'rgba(255,255,255,0.55)',
+        padding:'32px 4vw 32px 4vw',
+        background:'rgba(255,255,255,0.65)',
         minHeight:'100vh',
         display:'flex',
         flexDirection:'column',
-        borderRadius:'32px',
+        borderRadius:0,
         boxShadow:'0 4px 32px #00bcd422',
-        border:'1.5px solid rgba(0,188,212,0.08)',
+        border:'none',
         transition:'all 0.3s cubic-bezier(.4,2,.6,1)'
       }}>
         <div style={{flex:1}}>

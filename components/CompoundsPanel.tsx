@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../data/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { developers } from '../data/developers';
+import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 
 interface Compound {
   id?: string;
@@ -10,9 +11,11 @@ interface Compound {
   developer?: string;
   city?: string;
   country?: string;
+  description?: string;
+  images?: string[];
 }
 
-const initialForm: Compound = { name: '', logo: '', developer: '', city: '', country: '' };
+const initialForm: Compound = { name: '', logo: '', developer: '', city: '', country: '', description: '', images: [] };
 
 const CompoundsPanel: React.FC = () => {
   const [compounds, setCompounds] = useState<Compound[]>([]);
@@ -20,6 +23,8 @@ const CompoundsPanel: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Compound>(initialForm);
   const [editId, setEditId] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // جلب الكمباوندات من فايرستور
   const fetchCompounds = async () => {
@@ -36,15 +41,30 @@ const CompoundsPanel: React.FC = () => {
   // إضافة أو تعديل كمباوند
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let imagesUrls: string[] = form.images || [];
+    if (imageFiles.length > 0) {
+      const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      const storage = getStorage();
+      imagesUrls = [];
+      for (const file of imageFiles) {
+        const imgRef = ref(storage, `compounds/${Date.now()}_${file.name}`);
+        await uploadBytes(imgRef, file);
+        const url = await getDownloadURL(imgRef);
+        imagesUrls.push(url);
+      }
+    }
+    const data = { ...form, images: imagesUrls };
     if (editId) {
-      const { id, ...formData } = form;
+      const { id, ...formData } = data;
       await updateDoc(doc(db, 'compounds', editId), formData);
     } else {
-      await addDoc(collection(db, 'compounds'), form);
+      await addDoc(collection(db, 'compounds'), data);
     }
     setShowForm(false);
     setForm(initialForm);
     setEditId(null);
+    setImageFiles([]);
+    setImagePreviews([]);
     fetchCompounds();
   };
 
@@ -61,23 +81,34 @@ const CompoundsPanel: React.FC = () => {
     setForm(compound);
     setEditId(compound.id!);
     setShowForm(true);
+    setImageFiles([]);
+    setImagePreviews(compound.images || []);
+  };
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setEditId(null);
+    setShowForm(false);
+    setImageFiles([]);
+    setImagePreviews([]);
   };
 
   return (
     <div className="glass-table" style={{maxWidth:900,margin:'0 auto'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
         <h2 style={{color:'#00bcd4',fontWeight:'bold'}}>إدارة الكمباوندات</h2>
-        <button className="glass-btn" onClick={()=>{setShowForm(true);setForm(initialForm);setEditId(null);}}>إضافة كمباوند</button>
+        <button className="glass-btn" onClick={()=>{setShowForm(true);resetForm();}}><FaPlus /> إضافة كمباوند</button>
       </div>
       {loading ? <div>جاري التحميل...</div> : (
-        <table>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:16,background:'rgba(255,255,255,0.12)',borderRadius:16}}>
           <thead>
             <tr>
               <th>الاسم</th>
               <th>المطور</th>
               <th>المدينة</th>
               <th>الدولة</th>
-              <th>شعار</th>
+              <th>الوصف</th>
+              <th>الصور</th>
               <th>إجراءات</th>
             </tr>
           </thead>
@@ -88,10 +119,11 @@ const CompoundsPanel: React.FC = () => {
                 <td>{c.developer}</td>
                 <td>{c.city}</td>
                 <td>{c.country}</td>
-                <td>{c.logo && <img src={c.logo} alt="logo" style={{width:40}} />}</td>
+                <td style={{maxWidth:180,whiteSpace:'pre-line'}}>{c.description}</td>
+                <td>{c.images && c.images.length>0 && c.images.map((img:string,i:number)=>(<img key={i} src={img} alt="صورة" style={{width:38,height:38,borderRadius:8,objectFit:'cover',marginLeft:4}} />))}</td>
                 <td>
-                  <button className="glass-btn" style={{padding:'4px 12px',fontSize:15}} onClick={()=>handleEdit(c)}>تعديل</button>
-                  <button className="glass-btn" style={{padding:'4px 12px',fontSize:15,background:'#e53935',color:'#fff'}} onClick={()=>handleDelete(c.id!)}>حذف</button>
+                  <button className="glass-btn" style={{padding:'4px 12px',fontSize:15}} onClick={()=>handleEdit(c)}><FaEdit /> تعديل</button>
+                  <button className="glass-btn" style={{padding:'4px 12px',fontSize:15,background:'#e53935',color:'#fff'}} onClick={()=>handleDelete(c.id!)}><FaTrash /> حذف</button>
                 </td>
               </tr>
             ))}
@@ -111,22 +143,23 @@ const CompoundsPanel: React.FC = () => {
           </select>
           <input placeholder="المدينة" value={form.city} onChange={e=>setForm(f=>({...f,city:e.target.value}))} />
           <input placeholder="الدولة" value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))} />
-          {/* رفع صورة الشعار */}
-          <input type="file" accept="image/*" onChange={async e=>{
-            const file = e.target.files?.[0];
-            if (file) {
-              const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-              const storage = getStorage();
-              const imgRef = ref(storage, `compounds/${Date.now()}_${file.name}`);
-              await uploadBytes(imgRef, file);
-              const url = await getDownloadURL(imgRef);
-              setForm(f=>({...f,logo:url}));
-            }
+          <textarea placeholder="وصف الكمباوند / المميزات" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{padding:8,borderRadius:8,minWidth:220,minHeight:48,flex:1}} />
+          {/* رفع صور */}
+          <input type="file" accept="image/*" multiple onChange={e=>{
+            const files = Array.from(e.target.files||[]);
+            setImageFiles(files);
+            setImagePreviews(files.map(f=>URL.createObjectURL(f)));
           }} />
-          {form.logo && <img src={form.logo} alt="شعار" style={{width:48,height:48,borderRadius:8,margin:'8px 0'}} />}
+          {imagePreviews.length > 0 && (
+            <div style={{display:'flex',gap:8,alignItems:'center',margin:'8px 0'}}>
+              {imagePreviews.map((src,i)=>(
+                <img key={i} src={src} alt="معاينة" style={{width:48,height:48,borderRadius:8,objectFit:'cover',border:'1.5px solid #00bcd4'}} />
+              ))}
+            </div>
+          )}
           <div style={{display:'flex',gap:12,marginTop:12}}>
             <button className="glass-btn" type="submit">{editId ? 'حفظ التعديلات' : 'إضافة'}</button>
-            <button className="glass-btn" type="button" style={{background:'#e53935',color:'#fff'}} onClick={()=>{setShowForm(false);setEditId(null);}}>إلغاء</button>
+            <button className="glass-btn" type="button" style={{background:'#e53935',color:'#fff'}} onClick={resetForm}>إلغاء</button>
           </div>
         </form>
       )}
