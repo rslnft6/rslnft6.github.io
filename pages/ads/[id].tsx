@@ -54,4 +54,10 @@ export default function AdDetailsPage() {
       alignItems: 'center',
       boxSizing: 'border-box'
     }}>
-      <img src={ad.img} alt={ad.title || 'إعلان'}
+      <img src={ad.img} alt={ad.title || 'إعلان'} style={{maxWidth:'100%',borderRadius:12,marginBottom:24}} />
+      <h2 style={{color:'#00bcd4',marginBottom:16}}>{ad.title}</h2>
+      <div style={{fontSize:18,color:'#333',marginBottom:16,textAlign:'center'}}>{ad.details}</div>
+      {ad.link && <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{color:'#fff',background:'#00bcd4',padding:'10px 24px',borderRadius:8,textDecoration:'none',fontWeight:'bold'}}>زيارة الرابط</a>}
+    </div>
+  );
+}

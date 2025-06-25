@@ -520,15 +520,31 @@ export default function Home() {
     {/* أيقونات التواصل */}
     {showContacts && (
       <div style={{marginTop:16,display:'flex',flexWrap:'wrap',justifyContent:'center',gap:18}}>
-        <a href={`https://wa.me/${contacts.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{color:'#25d366',fontSize:28}} title="واتساب"><FaWhatsapp /></a>
-        <a href={`tel:${contacts.phone}`} style={{color:'#fff',fontSize:28}} title="اتصال"><FaPhone /></a>
-        <a href={contacts.facebook} target="_blank" rel="noopener noreferrer" style={{color:'#1877f3',fontSize:28}} title="فيسبوك"><FaFacebook /></a>
-        <a href={contacts.snapchat} target="_blank" rel="noopener noreferrer" style={{color:'#fffc00',fontSize:28}} title="سناب شات"><FaSnapchatGhost /></a>
-        <a href={contacts.twitter} target="_blank" rel="noopener noreferrer" style={{color:'#1da1f2',fontSize:28}} title="تويتر"><FaTwitter /></a>
-        <a href={contacts.instagram} target="_blank" rel="noopener noreferrer" style={{color:'#e1306c',fontSize:28}} title="انستجرام"><FaInstagram /></a>
-        <a href={contacts.telegram} target="_blank" rel="noopener noreferrer" style={{color:'#0088cc',fontSize:28}} title="تيليجرام"><FaTelegram /></a>
-        <a href={contacts.discord} target="_blank" rel="noopener noreferrer" style={{color:'#5865f2',fontSize:28}} title="ديسكورد"><FaDiscord /></a>
-        <a href={contacts.gmail} target="_blank" rel="noopener noreferrer" style={{color:'#fff',fontSize:28}} title="Gmail"><FaEnvelope /></a>
+        {Array.isArray(contacts) && contacts.map((c, i) => {
+          let Icon = null;
+          switch ((c.icon||'').toLowerCase()) {
+            case 'whatsapp': Icon = FaWhatsapp; break;
+            case 'phone': Icon = FaPhone; break;
+            case 'facebook': Icon = FaFacebook; break;
+            case 'snapchat': Icon = FaSnapchatGhost; break;
+            case 'twitter': Icon = FaTwitter; break;
+            case 'instagram': Icon = FaInstagram; break;
+            case 'telegram': Icon = FaTelegram; break;
+            case 'discord': Icon = FaDiscord; break;
+            case 'gmail': Icon = FaEnvelope; break;
+            default: Icon = FaEnvelope;
+          }
+          // تحديد نوع الرابط (tel/mailto/https)
+          let href = c.url;
+          if (c.icon === 'whatsapp') href = `https://wa.me/${c.url}`;
+          else if (c.icon === 'phone') href = `tel:${c.url}`;
+          else if (c.icon === 'gmail') href = c.url.startsWith('mailto:') ? c.url : `mailto:${c.url}`;
+          return (
+            <a key={c.id||i} href={href} target="_blank" rel="noopener noreferrer" style={{color:'#00bcd4',fontSize:28}} title={c.platform}>
+              {Icon ? <Icon /> : c.platform}
+            </a>
+          );
+        })}
       </div>
     )}
     <div style={{marginTop:18,fontSize:15,color:'#fff',fontWeight:'normal'}}>
