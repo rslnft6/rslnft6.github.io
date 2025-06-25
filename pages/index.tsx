@@ -262,6 +262,8 @@ export default function Home() {
           >
             {i18n.language === 'ar' ? 'EN' : 'AR'}
           </button>
+          {/* شعار الموقع في أقصى اليسار */}
+          <img src="/images/logo1.png" alt="logo" style={{width:36,marginLeft:8}} />
           {/* زر تسجيل الدخول الدائري */}
           <button
             onClick={() => window.location.href = '/login'}
@@ -418,9 +420,7 @@ export default function Home() {
           </div>
           {/* الوحدات الأكثر مشاهدة بناءً على الفلترة */}
           <div style={{display:'flex',alignItems:'center',gap:8,margin:'24px 0 8px 0',justifyContent:'center'}}>
-            <img src="/images/logo1.png" alt="logo" style={{width:36}} />
             <span style={{color:'#ff9800',fontWeight:'bold',fontSize:22}}>الوحدات المقترحة لك</span>
-            <span style={{background:'#00bcd4',color:'#fff',borderRadius:8,padding:'2px 10px',fontSize:14,marginRight:8}}>ذكاء اصطناعي</span>
           </div>
           <Swiper spaceBetween={12} slidesPerView={2} style={{marginBottom: 32}}>
             {filteredProperties.slice(0, 10).map((property) => (
