@@ -27,6 +27,7 @@ import { FaUserCircle } from 'react-icons/fa';
 import { defaultContacts, ContactLinks } from '../data/contacts';
 import { doc as fsDoc, getDoc } from 'firebase/firestore';
 import { FaWhatsapp, FaPhone, FaFacebook, FaSnapchatGhost, FaTwitter, FaInstagram, FaTelegram, FaDiscord, FaEnvelope } from 'react-icons/fa';
+import { Menu, MenuItem } from '@mui/material';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -80,6 +81,8 @@ export default function Home() {
   const [showPano, setShowPano] = useState<string|null>(null);
   const [showContacts, setShowContacts] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   // البحث الذكي
   const handleSmartSearch = (q: string) => {
@@ -205,6 +208,14 @@ export default function Home() {
     fetchSlider();
   }, []);
 
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <div className="container" style={{
       minHeight: '100vh',
@@ -241,49 +252,32 @@ export default function Home() {
           top: 0,
           zIndex: 100
         }}>
-          {/* زر اللغة الموحد */}
-          <button
-            onClick={toggleLang}
-            title={i18n.language === 'ar' ? 'English' : 'العربية'}
-            style={{
-              background: '#fff',
-              color: '#00bcd4',
-              border: '2px solid #00bcd4',
-              borderRadius: '50%',
-              width: 44,
-              height: 44,
-              fontWeight: 'bold',
-              fontSize: 18,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px #e0e0e0',
-              transition: 'all 0.2s',
-              marginRight: 8
-            }}
-          >
-            {i18n.language === 'ar' ? 'EN' : 'AR'}
-          </button>
-          {/* شعار الموقع في أقصى اليسار */}
-          <img src="/images/logo1.png" alt="logo" style={{width:36,marginLeft:8}} />
-          {/* زر تسجيل الدخول الدائري */}
-          <button
-            onClick={() => window.location.href = '/login'}
-            title={t('login') || 'تسجيل الدخول'}
-            style={{
-              background: '#00bcd4',
-              border: 'none',
-              borderRadius: '50%',
-              width: 44,
-              height: 44,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 8px #b2ebf2',
-              cursor: 'pointer',
-              marginLeft: 8
-            }}
-          >
-            <FaUserCircle size={26} color="#fff" />
-          </button>
+          {/* قائمة علوية موحدة */}
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <button
+              onClick={handleMenuClick}
+              style={{background:'#fff',color:'#00bcd4',border:'2px solid #00bcd4',borderRadius:'50%',width:44,height:44,fontWeight:'bold',fontSize:18,cursor:'pointer',boxShadow:'0 2px 8px #e0e0e0',transition:'all 0.2s'}}
+              title="القائمة"
+            >
+              ☰
+            </button>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+              <MenuItem onClick={()=>{window.location.href='/about'; handleMenuClose();}}>من نحن</MenuItem>
+              <MenuItem onClick={()=>{window.location.href='/partners'; handleMenuClose();}}>شركاؤنا</MenuItem>
+              <MenuItem onClick={()=>{window.location.href='/contact'; handleMenuClose();}}>تواصل معنا</MenuItem>
+              <MenuItem onClick={()=>{toggleLang(); handleMenuClose();}}>{i18n.language === 'ar' ? 'English' : 'العربية'}</MenuItem>
+            </Menu>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <img src="/images/logo1.png" alt="logo" style={{width:36,marginLeft:8}} />
+            <button
+              onClick={() => window.location.href = '/login'}
+              title={t('login') || 'تسجيل الدخول'}
+              style={{background:'#00bcd4',border:'none',borderRadius:'50%',width:44,height:44,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px #b2ebf2',cursor:'pointer',marginLeft:8}}
+            >
+              <FaUserCircle size={26} color="#fff" />
+            </button>
+          </div>
         </div>
         <main style={{
           minHeight:'70vh',
