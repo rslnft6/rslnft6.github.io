@@ -126,6 +126,16 @@ export default function Home() {
     setMaxPrice(Number(pendingFilters.maxPrice) || undefined);
   };
 
+  // تفعيل الفلترة من الخريطة
+  const handleCompoundMapClick = (compoundName: string) => {
+    setCompound(compoundName);
+    setPendingFilters(f => ({ ...f, compound: compoundName }));
+  };
+  const handleDeveloperMapClick = (developerName: string) => {
+    setDeveloper(developerName);
+    setPendingFilters(f => ({ ...f, developer: developerName }));
+  };
+
   // جلب الوحدات من Firestore
   useEffect(() => {
     async function fetchUnits() {
@@ -460,6 +470,15 @@ export default function Home() {
             </select>
             <input type="number" min="1" placeholder="الحد الأقصى للسعر ($)" value={pendingFilters.maxPrice || ''} onChange={e => handleFilterChange('maxPrice', e.target.value)} style={{fontSize:18,border:'1px solid #00bcd4',borderRadius:8,padding:8,minWidth:140,flex:'1 1 140px',marginLeft:8}} />
             <button onClick={applyFilters} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 24px',fontWeight:'bold',fontSize:16,marginLeft:8,cursor:'pointer'}}>بحث</button>
+          </div>
+          {/* خريطة تفاعلية احترافية */}
+          <div style={{width:'100%',maxWidth:1400,margin:'0 auto 32px auto',borderRadius:16,overflow:'hidden',boxShadow:'0 2px 16px #e0e0e0'}}>
+            <MapView
+              properties={filteredProperties}
+              compounds={compounds}
+              onCompoundClick={handleCompoundMapClick}
+              onDeveloperClick={handleDeveloperMapClick}
+            />
           </div>
           {/* الوحدات الأكثر مشاهدة بناءً على الفلترة */}
           <div style={{display:'flex',alignItems:'center',gap:8,margin:'24px 0 8px 0',justifyContent:'center'}}>

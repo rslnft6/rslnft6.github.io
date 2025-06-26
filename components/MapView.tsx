@@ -6,9 +6,11 @@ import OSM_STYLE from './MapLibreOSMStyle';
 interface MapViewProps {
   properties: any[];
   compounds?: any[];
+  onCompoundClick?: (compoundName: string) => void;
+  onDeveloperClick?: (developerName: string) => void;
 }
 
-const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
+const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoundClick, onDeveloperClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -21,7 +23,6 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
     // عرض الوحدات
     properties.forEach((p: any) => {
       if (p.lng && p.lat) {
-        // اختيار أيقونة حسب نوع الوحدة
         const iconUrl =
           p.type === 'palace' ? '/images/palace.jpg' :
           p.type === 'villa' ? '/images/villa.jpg' :
@@ -40,7 +41,6 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
         el.style.background = '#fff';
         el.style.cursor = 'pointer';
         el.title = p.title;
-        // صورة الأيقونة
         const img = document.createElement('img');
         img.src = iconUrl;
         img.alt = p.title;
@@ -49,9 +49,16 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
         img.style.objectFit = 'cover';
         img.style.borderRadius = '50%';
         el.appendChild(img);
-        // Popup عند الضغط
         el.onclick = (e) => {
           e.stopPropagation();
+          if (onCompoundClick && p.compound) {
+            onCompoundClick(p.compound);
+            return;
+          }
+          if (onDeveloperClick && p.developer) {
+            onDeveloperClick(p.developer);
+            return;
+          }
           const popup = new maplibregl.Popup({ offset: 18 })
             .setLngLat([p.lng, p.lat])
             .setHTML(`
@@ -71,8 +78,6 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
     // عرض الكمباوندات
     compounds.forEach((c: any) => {
       if (c.city && c.country) {
-        // تحديد موقع افتراضي للكمباوند (يمكنك لاحقًا إضافة lng/lat حقيقية)
-        // هنا سنبحث عن أول وحدة في هذا الكمباوند ونستخدم موقعها
         const unit = properties.find((p: any) => p.compound === c.name && p.lng && p.lat);
         if (!unit) return;
         const el = document.createElement('div');
@@ -95,6 +100,10 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
         el.appendChild(img);
         el.onclick = (e) => {
           e.stopPropagation();
+          if (onCompoundClick) {
+            onCompoundClick(c.name);
+            return;
+          }
           // جلب كل الوحدات داخل هذا الكمباوند
           const units = properties.filter((p: any) => p.compound === c.name);
           const html = `<div style='min-width:220px;max-width:280px;text-align:right'>
