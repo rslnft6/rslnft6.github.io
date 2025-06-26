@@ -6,6 +6,7 @@ import { Tabs, Tab, Box, Button, TextField, Dialog, DialogTitle, DialogContent, 
 import { Add, Edit, Delete, CloudUpload } from '@mui/icons-material';
 import DemoEmployees from './DemoEmployees';
 import AdsPanel from './AdsPanel';
+import ContactLinksPanel from './ContactLinksPanel';
 
 // تعريف أنواع البيانات للوحدات والمطورين والكمباوندات والخلفيات
 export type Unit = {
@@ -110,9 +111,15 @@ export default function AdminPanel() {
   }, []);
 
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', typography: 'body1', p: 2, bgcolor: 'rgba(240,248,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: 4, boxShadow: 3 }}>
-      <Typography variant="h5" sx={{color:'#00bcd4',fontWeight:'bold',mb:2,textAlign:'center'}}>لوحة التحكم الرئيسية<br /><span style={{fontSize:16,color:'#888'}}>أي تغيير يتم حفظه ويظهر فوراً في التطبيق</span></Typography>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 3, '.MuiTab-root': { color: '#2196f3', fontWeight: 'bold', fontSize: 18 }, '.Mui-selected': { color: '#00bcd4 !important' } }}>
+    <Box sx={{ width: '100%', minHeight: '100vh', p: { xs: 1, md: 4 }, bgcolor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(18px)', borderRadius: 6, boxShadow: 6, maxWidth: 1200, margin: '32px auto', position: 'relative' }}>
+      {/* ترويسة عصرية */}
+      <Box sx={{display:'flex',alignItems:'center',justifyContent:'center',gap:2,mb:3}}>
+        <img src="/images/logo1.png" alt="logo" style={{width:44,height:44,borderRadius:12,boxShadow:'0 2px 8px #00bcd4'}} />
+        <Typography variant="h4" sx={{color:'#00bcd4',fontWeight:'bold',letterSpacing:2}}>لوحة التحكم</Typography>
+      </Box>
+      <Typography variant="subtitle1" sx={{color:'#888',mb:2,textAlign:'center'}}>كل التعديلات تظهر فوراً في التطبيق</Typography>
+      {/* تبويبات عصرية */}
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 4, '.MuiTab-root': { color: '#2196f3', fontWeight: 'bold', fontSize: 18, borderRadius: 3, px:3, transition:'0.2s' }, '.Mui-selected': { color: '#fff !important', background:'#00bcd4', boxShadow:'0 2px 12px #00bcd455' } }}>
         <Tab label="الوحدات" />
         <Tab label="الموظفين" />
         <Tab label="المطورين" />
@@ -120,7 +127,9 @@ export default function AdminPanel() {
         <Tab label="الإعلانات" />
         <Tab label="الخلفيات" />
         <Tab label="الشريط الكتابي" />
+        <Tab label="تواصل معنا" />
       </Tabs>
+      {/* باقي التبويبات كما هي (كل قسم داخل Card أو Box مع ظل وPadding) */}
       {/* تبويب الوحدات */}
       {tab === 0 && (
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الوحدات العقارية</Typography>
@@ -533,6 +542,12 @@ export default function AdminPanel() {
               }}>تحديث</Button>
             </DialogActions>
           </Dialog>
+        </Box>
+      )}
+      {/* تبويب تواصل معنا */}
+      {tab === 7 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة روابط التواصل معنا</Typography>
+          <ContactLinksPanel />
         </Box>
       )}
     </Box>

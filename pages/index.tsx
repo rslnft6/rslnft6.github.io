@@ -80,7 +80,7 @@ export default function Home() {
   const [purpose, setPurpose] = useState(''); // إضافة حالة الفلترة للبيع/إيجار
   const [selectedPanorama, setSelectedPanorama] = useState<string | null>(null);
   const [pendingFilters, setPendingFilters] = useState({
-    search: '', type: '', country: '', compound: '', developer: '', finance: '', purpose: '', maxUnits: ''
+    search: '', type: '', country: '', compound: '', developer: '', finance: '', purpose: '', maxUnits: '', maxPrice: ''
   });
   const [chatOpen, setChatOpen] = useState(false);
   const [firebaseUnits, setFirebaseUnits] = useState<any[]>([]);
@@ -90,6 +90,7 @@ export default function Home() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [maxUnits, setMaxUnits] = useState<number|undefined>(undefined);
+  const [maxPrice, setMaxPrice] = useState<number|undefined>(undefined);
   const [bgIndex, setBgIndex] = useState(0);
   // إضافة حالة صور الخلفية من فايرستور
   const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
@@ -122,6 +123,7 @@ export default function Home() {
     setFinance(pendingFilters.finance);
     setPurpose(pendingFilters.purpose);
     setMaxUnits(Number(pendingFilters.maxUnits) || undefined);
+    setMaxPrice(Number(pendingFilters.maxPrice) || undefined);
   };
 
   // جلب الوحدات من Firestore
@@ -142,7 +144,8 @@ export default function Home() {
     (!compound || p.compound === compound) &&
     (!developer || p.developer === developer || p.developerId === developer) &&
     (!finance || (finance === 'تمويل عقاري' ? p.finance === 'تمويل عقاري' : finance === 'نقدي' ? p.finance === 'نقدي' : finance === 'أقساط' ? p.finance === 'أقساط' : finance === 'إعادة بيع' ? p.finance === 'إعادة بيع' : true)) &&
-    (!purpose || p.purpose === purpose)
+    (!purpose || p.purpose === purpose) &&
+    (!maxPrice || (p.price && Number(p.price) <= maxPrice))
   ).slice(0, maxUnits || 100);
 
   useEffect(() => {
@@ -153,7 +156,7 @@ export default function Home() {
 
   useEffect(() => {
     setPendingFilters({
-      search, type, country, compound, developer, finance, purpose, maxUnits: pendingFilters.maxUnits || ''
+      search, type, country, compound, developer, finance, purpose, maxUnits: pendingFilters.maxUnits || '', maxPrice: pendingFilters.maxPrice || ''
     });
   }, [search, type, country, compound, developer, finance, purpose]);
 
@@ -264,8 +267,7 @@ export default function Home() {
       minHeight: '100vh',
       borderRadius: 24,
       boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
-      // خلفية متغيرة بين صور Firestore أو صور افتراضية
-      background: `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)), url(${backgroundImages[bgIndex]})`,
+      background: backgroundImages.length > 0 ? `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)), url(${backgroundImages[bgIndex]})` : 'rgba(255,255,255,0.97)',
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
@@ -275,14 +277,11 @@ export default function Home() {
       width:'100vw',
       overflow:'hidden',
       position:'relative',
-      backgroundColor: 'rgba(255,255,255,0.85)', // طبقة شفافة عصرية
+      backgroundColor: 'rgba(255,255,255,0.85)',
     }}>
       <Head>
         <title>تطبيق عقارات عالمي</title>
-        <meta
-          name="description"
-          content="تصفح أفضل الوحدات والمشروعات العقارية في الوطن العربي"
-        />
+        <meta name="description" content="تصفح أفضل الوحدات والمشروعات العقارية في الوطن العربي" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -313,6 +312,8 @@ export default function Home() {
               <MenuItem onClick={()=>{window.location.href='/about'; handleMenuClose();}}>من نحن</MenuItem>
               <MenuItem onClick={()=>{window.location.href='/partners'; handleMenuClose();}}>شركاؤنا</MenuItem>
               <MenuItem onClick={()=>{window.location.href='/contact'; handleMenuClose();}}>تواصل معنا</MenuItem>
+              <MenuItem onClick={()=>{handleMenuClose(); /* المفضلة */}}>{i18n.language === 'ar' ? 'المفضلة' : 'Favorites'}</MenuItem>
+              <MenuItem onClick={()=>{handleMenuClose(); /* المقارنة */}}>{i18n.language === 'ar' ? 'مقارنة الوحدات' : 'Compare Units'}</MenuItem>
               <MenuItem onClick={()=>{toggleLang(); handleMenuClose();}}>{i18n.language === 'ar' ? 'English' : 'العربية'}</MenuItem>
             </Menu>
           </div>
@@ -336,18 +337,15 @@ export default function Home() {
           justifyContent:'center',
           padding:'0 0 48px 0',
         }}>
-          {/* شريط إعلانات متحرك ديناميكي من لوحة التحكم */}
+          {/* الشريط الكتابي المتحرك فقط بدون مربع أو ظل */}
           <div style={{
             width:'100%',
             overflow:'hidden',
-            margin:'0 auto 0 auto', // إزالة الهامش السفلي
+            margin:'0 auto 0 auto',
             direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
-            background: 'linear-gradient(90deg,#00bcd4 0%,#2196f3 100%)',
-            borderRadius: 16,
-            // إزالة الظل
-            // boxShadow: '0 2px 16px #00bcd422',
-            padding: '8px 0',
-            // marginBottom: 16
+            background: 'none',
+            borderRadius: 0,
+            padding: 0,
           }}>
             <div style={{
               display:'inline-block',
@@ -460,7 +458,7 @@ export default function Home() {
               <option value="أقساط">أقساط</option>
               <option value="إعادة بيع">إعادة بيع</option>
             </select>
-            <input type="number" min="1" max="100" placeholder="حد أقصى للوحدات" value={pendingFilters.maxUnits || ''} onChange={e => handleFilterChange('maxUnits', e.target.value)} style={{fontSize:18,border:'1px solid #00bcd4',borderRadius:8,padding:8,minWidth:120,flex:'1 1 120px',marginLeft:8}} />
+            <input type="number" min="1" placeholder="الحد الأقصى للسعر ($)" value={pendingFilters.maxPrice || ''} onChange={e => handleFilterChange('maxPrice', e.target.value)} style={{fontSize:18,border:'1px solid #00bcd4',borderRadius:8,padding:8,minWidth:140,flex:'1 1 140px',marginLeft:8}} />
             <button onClick={applyFilters} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 24px',fontWeight:'bold',fontSize:16,marginLeft:8,cursor:'pointer'}}>بحث</button>
           </div>
           {/* الوحدات الأكثر مشاهدة بناءً على الفلترة */}
@@ -470,12 +468,18 @@ export default function Home() {
           <Swiper spaceBetween={12} slidesPerView={2} style={{marginBottom: 32}}>
             {filteredProperties.slice(0, 10).map((property) => (
               <SwiperSlide key={property.id}>
-                <div className="card" style={{cursor:'pointer',border:'2px solid #00bcd4',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0'}} onClick={()=>window.location.href=`/property/${property.id}`}> 
+                <div className="card" style={{cursor:'pointer',border:'2px solid #00bcd4',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0',position:'relative'}} onClick={()=>window.location.href=`/property/${property.id}`}> 
                   <img src={property.image} alt={property.title} style={{width: '100%', height: 140, objectFit: 'cover', borderRadius: 12}} />
                   <div className="property-details">
                     <h3 style={{color:'#00bcd4',fontWeight:'bold'}}>{property.title}</h3>
                     <span style={{color:'#ff9800',fontWeight:'bold'}}>{property.location}</span>
                     <span style={{color:'#00e676',fontWeight:'bold'}}>{property.details}</span>
+                  </div>
+                  {/* أزرار مقارنة/مفضلة/مشاركة */}
+                  <div style={{position:'absolute',top:8,left:8,display:'flex',gap:8}}>
+                    <button title="مقارنة" style={{background:'#fff',border:'1.5px solid #00bcd4',borderRadius:8,padding:4,cursor:'pointer'}}>🔄</button>
+                    <button title="مفضلة" style={{background:'#fff',border:'1.5px solid #ff9800',borderRadius:8,padding:4,cursor:'pointer'}}>⭐</button>
+                    <button title="مشاركة" style={{background:'#fff',border:'1.5px solid #2196f3',borderRadius:8,padding:4,cursor:'pointer'}}>🔗</button>
                   </div>
                 </div>
               </SwiperSlide>
@@ -484,105 +488,4 @@ export default function Home() {
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
             {!chatOpen && (
-              <button onClick={()=>setChatOpen(true)} style={{background:'#00bcd4',border:'none',borderRadius:'50%',width:56,height:56,boxShadow:'0 2px 8px #00bcd4',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
-                <span style={{fontSize:32,color:'#fff'}}>💬</span>
-              </button>
-            )}
-            {chatOpen && (
-              <div style={{position:'relative'}}>
-                <button onClick={()=>setChatOpen(false)} style={{position:'absolute',top:-12,right:-12,background:'#e53935',color:'#fff',border:'none',borderRadius:'50%',width:28,height:28,fontWeight:'bold',fontSize:18,cursor:'pointer',zIndex:2}}>×</button>
-                <SmartChat />
-              </div>
-            )}
-          </div>
-          {/* خريطة العقارات */}
-          <h1 className="section-title">خريطة العقارات</h1>
-          <div className="map-section" style={{minHeight:400, height:400, width:'100%', borderRadius:16, overflow:'hidden', boxShadow:'0 2px 12px #e0e0e0', marginBottom:32, background:'#f5f7fa', position:'relative'}}>
-            <MapView properties={filteredProperties} />
-            <noscript>
-              <div style={{color:'#ff1744',fontWeight:'bold',padding:16}}>يرجى تفعيل الجافاسكريبت لعرض الخريطة.</div>
-            </noscript>
-            <div id="map-fallback" style={{display:'none',color:'#ff1744',fontWeight:'bold',padding:16,position:'absolute',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:2}}>
-              تعذر تحميل الخريطة. تأكد من اتصالك بالإنترنت أو أعد تحميل الصفحة.
-            </div>
-          </div>
-          {/* <Reviews /> */}
-          {/* <StatsBox /> */}
-          {/* <AdminPanel /> تم إزالته من الصفحة الرئيسية */}
-        </main>
-      </div>
-      <footer style={{height:80}} />
-      {/* شريط مهام سفلي للأيقونات */}
-      <nav style={{
-        position:'fixed',
-        bottom:0,
-        left:0,
-        width:'100vw',
-        background:'rgba(255,255,255,0.85)',
-        boxShadow:'0 -2px 16px #00bcd422',
-        display:'flex',
-        justifyContent:'center',
-        alignItems:'center',
-        gap:32,
-        padding:'12px 0',
-        zIndex:1000
-      }}>
-        {/* تم حذف أزرار من نحن وشركاؤنا وتواصل معنا بناءً على طلب المستخدم */}
-      </nav>
-      <footer style={{background:'#f5f7fa',color:'#222',padding:'32px 0 16px 0',marginTop:40}}>
-  <div style={{
-    background: 'linear-gradient(90deg,#00bcd4 0%,#2196f3 100%)',
-    color: '#fff',
-    borderRadius: 16,
-    padding: '32px 32px',
-    margin: '0 auto',
-    maxWidth: 800,
-    boxShadow: '0 2px 16px #b2ebf2',
-    fontWeight: 'bold',
-    fontSize: 20,
-    textAlign: 'center',
-    letterSpacing: 1
-  }}>
-    {/* تم حذف أزرار من نحن وشركاؤنا وتواصل معنا من الفوتر بناءً على طلب المستخدم */}
-    {/* نبذة من نحن */}
-    {/* تم إلغاء عرض النبذة هنا بناءً على طلب المستخدم */}
-    {/* أيقونات التواصل */}
-    {showContacts && (
-      <div style={{marginTop:16,display:'flex',flexWrap:'wrap',justifyContent:'center',gap:18}}>
-        {Array.isArray(contacts) && contacts.map((c, i) => {
-          let Icon = null;
-          switch ((c.icon||'').toLowerCase()) {
-            case 'whatsapp': Icon = FaWhatsapp; break;
-            case 'phone': Icon = FaPhone; break;
-            case 'facebook': Icon = FaFacebook; break;
-            case 'snapchat': Icon = FaSnapchatGhost; break;
-            case 'twitter': Icon = FaTwitter; break;
-            case 'instagram': Icon = FaInstagram; break;
-            case 'telegram': Icon = FaTelegram; break;
-            case 'discord': Icon = FaDiscord; break;
-            case 'gmail': Icon = FaEnvelope; break;
-            default: Icon = FaEnvelope;
-          }
-          // تحديد نوع الرابط (tel/mailto/https)
-          let href = c.url;
-          if (c.icon === 'whatsapp') href = `https://wa.me/${c.url}`;
-          else if (c.icon === 'phone') href = `tel:${c.url}`;
-          else if (c.icon === 'gmail') href = c.url.startsWith('mailto:') ? c.url : `mailto:${c.url}`;
-          return (
-            <a key={c.id||i} href={href} target="_blank" rel="noopener noreferrer" style={{color:'#00bcd4',fontSize:28}} title={c.platform}>
-              {Icon ? <Icon /> : c.platform}
-            </a>
-          );
-        })}
-      </div>
-    )}
-    {/* تم حذف الخط الساخن هنا بناءً على طلب المستخدم */}
-  </div>
-  <div style={{textAlign:'center',marginTop:24,color:'#00bcd4',fontSize:16,fontWeight:'bold'}}>
-    <img src="/globe.svg" alt="logo" style={{width:32,verticalAlign:'middle',marginRight:8}} />
-    جميع الحقوق محفوظة Realstatelive © {new Date().getFullYear()}
-  </div>
-</footer>
-    </div>
-  );
-}
+              <button onClick={()=>setChatOpen(true)

@@ -5,9 +5,10 @@ import OSM_STYLE from './MapLibreOSMStyle';
 
 interface MapViewProps {
   properties: any[];
+  compounds?: any[];
 }
 
-const MapView: React.FC<MapViewProps> = ({ properties }) => {
+const MapView: React.FC<MapViewProps> = ({ properties, compounds = [] }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -17,6 +18,7 @@ const MapView: React.FC<MapViewProps> = ({ properties }) => {
       center: [31.2357, 30.0444],
       zoom: 5
     });
+    // عرض الوحدات
     properties.forEach((p: any) => {
       if (p.lng && p.lat) {
         // اختيار أيقونة حسب نوع الوحدة
@@ -66,8 +68,53 @@ const MapView: React.FC<MapViewProps> = ({ properties }) => {
         new maplibregl.Marker(el).setLngLat([p.lng, p.lat]).addTo(map);
       }
     });
+    // عرض الكمباوندات
+    compounds.forEach((c: any) => {
+      if (c.city && c.country) {
+        // تحديد موقع افتراضي للكمباوند (يمكنك لاحقًا إضافة lng/lat حقيقية)
+        // هنا سنبحث عن أول وحدة في هذا الكمباوند ونستخدم موقعها
+        const unit = properties.find((p: any) => p.compound === c.name && p.lng && p.lat);
+        if (!unit) return;
+        const el = document.createElement('div');
+        el.style.width = '48px';
+        el.style.height = '48px';
+        el.style.borderRadius = '50%';
+        el.style.overflow = 'hidden';
+        el.style.boxShadow = '0 2px 8px #2196f3';
+        el.style.border = '2.5px solid #2196f3';
+        el.style.background = '#fff';
+        el.style.cursor = 'pointer';
+        el.title = c.name;
+        const img = document.createElement('img');
+        img.src = c.logo || '/globe.svg';
+        img.alt = c.name;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '50%';
+        el.appendChild(img);
+        el.onclick = (e) => {
+          e.stopPropagation();
+          // جلب كل الوحدات داخل هذا الكمباوند
+          const units = properties.filter((p: any) => p.compound === c.name);
+          const html = `<div style='min-width:220px;max-width:280px;text-align:right'>
+            <div style='font-weight:bold;color:#2196f3;font-size:20px;margin-bottom:8px'>${c.name}</div>
+            <div style='color:#00bcd4;font-size:15px;margin-bottom:8px'>${c.city || ''} - ${c.country || ''}</div>
+            <div style='font-size:15px;font-weight:bold;margin-bottom:8px'>الوحدات المتاحة:</div>
+            <ul style='padding:0;margin:0;list-style:none;'>
+              ${units.map(u => `<li style='margin-bottom:6px;'><a href='/property/${u.id}' style='color:#00bcd4;text-decoration:underline;font-weight:bold;cursor:pointer;'>${u.title || 'وحدة'}</a></li>`).join('')}
+            </ul>
+          </div>`;
+          new maplibregl.Popup({ offset: 18 })
+            .setLngLat([unit.lng, unit.lat])
+            .setHTML(html)
+            .addTo(map);
+        };
+        new maplibregl.Marker(el).setLngLat([unit.lng, unit.lat]).addTo(map);
+      }
+    });
     return () => map.remove();
-  }, [properties]);
+  }, [properties, compounds]);
   return <div ref={mapContainer} style={{width:'100%',height:400,borderRadius:16,margin:'32px 0',boxShadow:'0 2px 16px #e0e0e0'}} />;
 };
 
