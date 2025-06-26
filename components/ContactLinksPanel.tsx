@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../data/firebase';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { Box, Typography, TextField, Button, Grid } from '@mui/material';
+import { Box, Typography, TextField, Button, Stack } from '@mui/material';
 
 interface ContactLink {
   id?: string;
@@ -52,21 +52,21 @@ export default function ContactLinksPanel() {
   return (
     <Box>
       <Typography sx={{mb:2}}>يمكنك تعديل روابط التواصل وسيتم حفظها فوراً.</Typography>
-      <Grid container spacing={2}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
         {links.map((link, i) => (
           <React.Fragment key={i}>
-            <Grid item xs={12} md={3}>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' }, minWidth: 180, mb: 2 }}>
               <TextField label="المنصة" value={link.platform} onChange={e => handleChange(i, 'platform', e.target.value)} fullWidth />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 50%' }, minWidth: 220, mb: 2 }}>
               <TextField label="الرابط/رقم الهاتف" value={link.url} onChange={e => handleChange(i, 'url', e.target.value)} fullWidth />
-            </Grid>
-            <Grid item xs={12} md={3}>
+            </Box>
+            <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' }, minWidth: 180, mb: 2 }}>
               <TextField label="الأيقونة" value={link.icon} onChange={e => handleChange(i, 'icon', e.target.value)} fullWidth />
-            </Grid>
+            </Box>
           </React.Fragment>
         ))}
-      </Grid>
+      </Stack>
       <Button variant="contained" color="primary" sx={{mt:3}} onClick={handleSave} disabled={loading}>{loading ? 'جاري الحفظ...' : 'حفظ الروابط'}</Button>
       {success && <Typography color="success.main" sx={{mt:2}}>تم الحفظ بنجاح!</Typography>}
     </Box>

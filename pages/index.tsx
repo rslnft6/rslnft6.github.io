@@ -488,4 +488,19 @@ export default function Home() {
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
             {!chatOpen && (
-              <button onClick={()=>setChatOpen(true)
+              <button onClick={()=>setChatOpen(true)} style={{background:'#00bcd4',border:'none',borderRadius:'50%',width:56,height:56,boxShadow:'0 2px 8px #00bcd4',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                <span style={{fontSize:32,color:'#fff'}}>💬</span>
+              </button>
+            )}
+            {chatOpen && (
+              <div style={{position:'relative'}}>
+                <button onClick={()=>setChatOpen(false)} style={{position:'absolute',top:-12,right:-12,background:'#e53935',color:'#fff',border:'none',borderRadius:'50%',width:28,height:28,fontWeight:'bold',fontSize:18,cursor:'pointer',zIndex:2}}>×</button>
+                <SmartChat />
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.1.2",
+    "@mui/system": "^7.1.1",
     "@react-oauth/google": "^0.12.2",
     "@walletconnect/web3-provider": "^1.8.0",
     "browser-image-compression": "^2.0.2",
