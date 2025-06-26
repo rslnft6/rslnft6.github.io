@@ -123,8 +123,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingUnit(null); setUnitForm({ title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: '' }); setUnitDialog(true); }}>إضافة وحدة</Button>
           <Grid container spacing={2} mt={1}>
             {units.map(unit => (
-              <Grid item xs={12} md={6} lg={4} key={unit.id}>
-                <Card>
+              <Box key={unit.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
                   <CardMedia image={unit.images?.[0] || '/images/bg1.png'} title={unit.title} sx={{ height: 140 }} />
                   <CardContent>
                     <Typography variant="h6">{unit.title}</Typography>
@@ -136,7 +136,7 @@ export default function AdminPanel() {
                     <IconButton color="error" onClick={async () => { await deleteDoc(doc(db, 'units', unit.id!)); setUnits(units.filter(u => u.id !== unit.id)); }}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل وحدة */}
@@ -144,40 +144,40 @@ export default function AdminPanel() {
             <DialogTitle>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="العنوان" fullWidth value={unitForm.title} onChange={e => setUnitForm(f => ({ ...f, title: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الدولة" fullWidth value={unitForm.country} onChange={e => setUnitForm(f => ({ ...f, country: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الكمباوند" fullWidth value={unitForm.compound} onChange={e => setUnitForm(f => ({ ...f, compound: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="المطور" fullWidth value={unitForm.developer} onChange={e => setUnitForm(f => ({ ...f, developer: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="المساحة" fullWidth value={unitForm.area} onChange={e => setUnitForm(f => ({ ...f, area: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="السعر الأدنى" fullWidth value={unitForm.minPrice} onChange={e => setUnitForm(f => ({ ...f, minPrice: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="السعر الأقصى" fullWidth value={unitForm.maxPrice} onChange={e => setUnitForm(f => ({ ...f, maxPrice: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="عدد الغرف" fullWidth value={unitForm.rooms} onChange={e => setUnitForm(f => ({ ...f, rooms: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="عدد الحمامات" fullWidth value={unitForm.baths} onChange={e => setUnitForm(f => ({ ...f, baths: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="عدد المطابخ" fullWidth value={unitForm.kitchen} onChange={e => setUnitForm(f => ({ ...f, kitchen: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <TextField label="عدد الأدوار" fullWidth value={unitForm.floors} onChange={e => setUnitForm(f => ({ ...f, floors: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
                     <InputLabel>حمام سباحة</InputLabel>
                     <Select value={unitForm.pool ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, pool: e.target.value === "true" }))} label="حمام سباحة">
@@ -185,8 +185,8 @@ export default function AdminPanel() {
                       <MenuItem value="false">لا</MenuItem>
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
                     <InputLabel>جاردن</InputLabel>
                     <Select value={unitForm.garden ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, garden: e.target.value === "true" }))} label="جاردن">
@@ -194,8 +194,8 @@ export default function AdminPanel() {
                       <MenuItem value="false">لا</MenuItem>
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
                     <InputLabel>غرفة حرس</InputLabel>
                     <Select value={unitForm.guardRoom ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, guardRoom: e.target.value === "true" }))} label="غرفة حرس">
@@ -203,11 +203,11 @@ export default function AdminPanel() {
                       <MenuItem value="false">لا</MenuItem>
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} md={8}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '66.66%' } }}>
                   <TextField label="الموقع على الخريطة (رابط)" fullWidth value={unitForm.location} onChange={e => setUnitForm(f => ({ ...f, location: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع صور
                     <input type="file" hidden multiple accept="image/*" onChange={async e => {
@@ -217,9 +217,9 @@ export default function AdminPanel() {
                       setUnitForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
                     }} />
                   </Button>
-                </Grid>
+                </Box>
                 {/* صور بانوراما، نموذج 3D، VR */}
-                <Grid item xs={12} md={4}>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع صور بانوراما
                     <input type="file" hidden multiple accept="image/*" onChange={async e => {
@@ -229,8 +229,8 @@ export default function AdminPanel() {
                       setUnitForm(f => ({ ...f, panorama: [...(f.panorama || []), ...urls] }));
                     }} />
                   </Button>
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع نموذج 3D
                     <input type="file" hidden accept=".glb,.gltf" onChange={async e => {
@@ -241,8 +241,8 @@ export default function AdminPanel() {
                       }
                     }} />
                   </Button>
-                </Grid>
-                <Grid item xs={12} md={4}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع نموذج VR
                     <input type="file" hidden accept=".vr,.zip" onChange={async e => {
@@ -253,7 +253,7 @@ export default function AdminPanel() {
                       }
                     }} />
                   </Button>
-                </Grid>
+                </Box>
               </Grid>
             </DialogContent>
             <DialogActions>
@@ -278,8 +278,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
           <Grid container spacing={2} mt={1}>
             {developers.map(dev => (
-              <Grid item xs={12} md={6} lg={4} key={dev.id}>
-                <Card>
+              <Box key={dev.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
                   <CardMedia image={dev.images?.[0] || '/images/bg1.png'} title={dev.name} sx={{ height: 140 }} />
                   <CardContent>
                     <Typography variant="h6">{dev.name}</Typography>
@@ -291,27 +291,27 @@ export default function AdminPanel() {
                     <IconButton color="error" onClick={async () => { await deleteDoc(doc(db, 'developers', dev.id!)); setDevelopers(developers.filter(d => d.id !== dev.id)); }}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل مطور */}
           <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="md" fullWidth>
             <DialogTitle>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
             <DialogContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ width: '100%' }}>
                   <TextField label="أهم الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ width: '100%' }}>
                   <TextField label="نبذة عن المطور" fullWidth multiline rows={3} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ width: '100%' }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع صور مشاريع المطور
                     <input type="file" hidden multiple accept="image/*" onChange={async e => {
@@ -321,8 +321,8 @@ export default function AdminPanel() {
                       setDevForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
                     }} />
                   </Button>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDevDialog(false)}>إلغاء</Button>
@@ -346,8 +346,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
           <Grid container spacing={2} mt={1}>
             {compounds.map(comp => (
-              <Grid item xs={12} md={6} lg={4} key={comp.id}>
-                <Card>
+              <Box key={comp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
                   <CardMedia image={comp.images?.[0] || '/images/bg1.png'} title={comp.name} sx={{ height: 140 }} />
                   <CardContent>
                     <Typography variant="h6">{comp.name}</Typography>
@@ -358,27 +358,27 @@ export default function AdminPanel() {
                     <IconButton color="error" onClick={async () => { await deleteDoc(doc(db, 'compounds', comp.id!)); setCompounds(compounds.filter(c => c.id !== comp.id)); }}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل كمباوند */}
           <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="md" fullWidth>
             <DialogTitle>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
             <DialogContent>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الموقع على الخريطة (رابط)" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ width: '100%' }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
                     رفع صور الكمباوند
                     <input type="file" hidden multiple accept="image/*" onChange={async e => {
@@ -388,8 +388,8 @@ export default function AdminPanel() {
                       setCompoundForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
                     }} />
                   </Button>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setCompoundDialog(false)}>إلغاء</Button>
@@ -413,8 +413,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setBgDialog(true)}>إضافة خلفية</Button>
           <Grid container spacing={2} mt={1}>
             {backgrounds.map((bg, i) => (
-              <Grid item xs={6} md={3} key={i}>
-                <Card>
+              <Box key={i} sx={{ width: { xs: '50%', md: '25%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
                   <CardMedia image={bg} sx={{ height: 120 }} />
                   <CardActions>
                     <IconButton color="error" onClick={async () => {
@@ -423,7 +423,7 @@ export default function AdminPanel() {
                     }}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           <Dialog open={bgDialog} onClose={() => setBgDialog(false)}>
@@ -456,8 +456,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setSliderDialog(true)}>إضافة صورة للسلايدر</Button>
           <Grid container spacing={2} mt={1}>
             {slider.map((img, i) => (
-              <Grid item xs={6} md={3} key={i}>
-                <Card>
+              <Box key={i} sx={{ width: { xs: '50%', md: '25%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
                   <CardMedia image={img} sx={{ height: 120 }} />
                   <CardActions>
                     <IconButton color="error" onClick={async () => {
@@ -466,7 +466,7 @@ export default function AdminPanel() {
                     }}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           <Dialog open={sliderDialog} onClose={() => setSliderDialog(false)}>
