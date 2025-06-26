@@ -61,6 +61,12 @@ const PANORAMA_IMAGES = [
   '/panorama/pano3.jpg',
 ];
 
+// حذف تعريف BACKGROUND_IMAGES الثابت
+// const BACKGROUND_IMAGES = [
+//   '/images/bg1.png',
+//   '/images/bg2.png'
+// ];
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { locale, push } = useRouter();
@@ -84,6 +90,9 @@ export default function Home() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [maxUnits, setMaxUnits] = useState<number|undefined>(undefined);
+  const [bgIndex, setBgIndex] = useState(0);
+  // إضافة حالة صور الخلفية من فايرستور
+  const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
 
   // البحث الذكي
   const handleSmartSearch = (q: string) => {
@@ -210,6 +219,38 @@ export default function Home() {
     fetchSlider();
   }, []);
 
+  // جلب صور الخلفية من فايرستور (collection: backgrounds)
+  useEffect(() => {
+    async function fetchBackgrounds() {
+      try {
+        const snap = await getDocs(collection(db, 'backgrounds'));
+        const imgs = snap.docs.map(d => d.data().url).filter(Boolean);
+        setBackgroundImages(imgs.length > 0 ? imgs.slice(0, 4) : [
+          '/images/bg1.png',
+          '/images/bg2.png',
+          '/images/bg10.png',
+          '/images/bg4.png',
+        ]);
+      } catch {
+        setBackgroundImages([
+          '/images/bg1.png',
+          '/images/bg2.png',
+          '/images/bg10.png',
+          '/images/bg4.png',
+        ]);
+      }
+    }
+    fetchBackgrounds();
+  }, []);
+
+  useEffect(() => {
+    if (backgroundImages.length === 0) return;
+    const interval = setInterval(() => {
+      setBgIndex(i => (i + 1) % backgroundImages.length);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, [backgroundImages]);
+
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -218,15 +259,20 @@ export default function Home() {
     setAnchorEl(null);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex(i => (i + 1) % BACKGROUND_IMAGES.length);
+    }, 7000); // تبديل كل 7 ثوانٍ
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="container" style={{
       minHeight: '100vh',
       borderRadius: 24,
       boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
-      // جعل الخلفية ديناميكية من لوحة التحكم
-      background: backgrounds.length > 0
-        ? `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)),` + backgrounds.map(bg => `url(${bg})`).join(',')
-        : 'rgba(255,255,255,1)',
+      // خلفية متغيرة بين صور Firestore أو صور افتراضية
+      background: `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)), url(${backgroundImages[bgIndex]})`,
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
@@ -532,9 +578,7 @@ export default function Home() {
         })}
       </div>
     )}
-    <div style={{marginTop:18,fontSize:15,color:'#fff',fontWeight:'normal'}}>
-      الخط الساخن <span style={{color:'#ffeb3b',textDecoration:'underline',fontWeight:'bold'}}>19500</span>
-    </div>
+    {/* تم حذف الخط الساخن هنا بناءً على طلب المستخدم */}
   </div>
   <div style={{textAlign:'center',marginTop:24,color:'#00bcd4',fontSize:16,fontWeight:'bold'}}>
     <img src="/globe.svg" alt="logo" style={{width:32,verticalAlign:'middle',marginRight:8}} />

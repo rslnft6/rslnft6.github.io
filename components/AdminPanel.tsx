@@ -108,8 +108,8 @@ export default function AdminPanel() {
   }, []);
 
   return (
-    <Box sx={{ width: '100%', typography: 'body1', p: 2 }}>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
+    <Box sx={{ width: '100%', minHeight: '100vh', typography: 'body1', p: 2, bgcolor: 'rgba(240,248,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: 4, boxShadow: 3 }}>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 3, '.MuiTab-root': { color: '#2196f3', fontWeight: 'bold', fontSize: 18 }, '.Mui-selected': { color: '#00bcd4 !important' } }}>
         <Tab label="الوحدات" />
         <Tab label="المطورين" />
         <Tab label="الكمباوندات" />
@@ -141,45 +141,45 @@ export default function AdminPanel() {
           </Grid>
           {/* حوار إضافة/تعديل وحدة */}
           <Dialog open={unitDialog} onClose={() => setUnitDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
-            <DialogContent>
-              <Grid container spacing={2}>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 22, textAlign: 'center', letterSpacing: 1 }}>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
+            <DialogContent sx={{ bgcolor: 'rgba(255,255,255,0.8)', borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="العنوان" fullWidth value={unitForm.title} onChange={e => setUnitForm(f => ({ ...f, title: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الدولة" fullWidth value={unitForm.country} onChange={e => setUnitForm(f => ({ ...f, country: e.target.value }))} />
+                  <TextField label="العنوان (مثال: شقة فاخرة)" fullWidth value={unitForm.title} onChange={e => setUnitForm(f => ({ ...f, title: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الكمباوند" fullWidth value={unitForm.compound} onChange={e => setUnitForm(f => ({ ...f, compound: e.target.value }))} />
+                  <TextField label="الدولة (مثال: مصر)" fullWidth value={unitForm.country} onChange={e => setUnitForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="المطور" fullWidth value={unitForm.developer} onChange={e => setUnitForm(f => ({ ...f, developer: e.target.value }))} />
+                  <TextField label="الكمباوند (مثال: ماونتن فيو)" fullWidth value={unitForm.compound} onChange={e => setUnitForm(f => ({ ...f, compound: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                  <TextField label="المطور (مثال: سوديك)" fullWidth value={unitForm.developer} onChange={e => setUnitForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="المساحة" fullWidth value={unitForm.area} onChange={e => setUnitForm(f => ({ ...f, area: e.target.value }))} />
+                  <TextField label="المساحة (م²)" fullWidth value={unitForm.area} onChange={e => setUnitForm(f => ({ ...f, area: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="السعر الأدنى" fullWidth value={unitForm.minPrice} onChange={e => setUnitForm(f => ({ ...f, minPrice: e.target.value }))} />
+                  <TextField label="السعر الأدنى (جنيه)" fullWidth value={unitForm.minPrice} onChange={e => setUnitForm(f => ({ ...f, minPrice: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="السعر الأقصى" fullWidth value={unitForm.maxPrice} onChange={e => setUnitForm(f => ({ ...f, maxPrice: e.target.value }))} />
+                  <TextField label="السعر الأقصى (جنيه)" fullWidth value={unitForm.maxPrice} onChange={e => setUnitForm(f => ({ ...f, maxPrice: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="عدد الغرف" fullWidth value={unitForm.rooms} onChange={e => setUnitForm(f => ({ ...f, rooms: e.target.value }))} />
+                  <TextField label="عدد الغرف" fullWidth value={unitForm.rooms} onChange={e => setUnitForm(f => ({ ...f, rooms: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="عدد الحمامات" fullWidth value={unitForm.baths} onChange={e => setUnitForm(f => ({ ...f, baths: e.target.value }))} />
+                  <TextField label="عدد الحمامات" fullWidth value={unitForm.baths} onChange={e => setUnitForm(f => ({ ...f, baths: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="عدد المطابخ" fullWidth value={unitForm.kitchen} onChange={e => setUnitForm(f => ({ ...f, kitchen: e.target.value }))} />
+                  <TextField label="عدد المطابخ" fullWidth value={unitForm.kitchen} onChange={e => setUnitForm(f => ({ ...f, kitchen: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <TextField label="عدد الأدوار" fullWidth value={unitForm.floors} onChange={e => setUnitForm(f => ({ ...f, floors: e.target.value }))} />
+                  <TextField label="عدد الأدوار" fullWidth value={unitForm.floors} onChange={e => setUnitForm(f => ({ ...f, floors: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
-                    <InputLabel>حمام سباحة</InputLabel>
+                    <InputLabel sx={{ color: '#2196f3', fontWeight: 'bold' }}>حمام سباحة</InputLabel>
                     <Select value={unitForm.pool ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, pool: e.target.value === "true" }))} label="حمام سباحة">
                       <MenuItem value="true">نعم</MenuItem>
                       <MenuItem value="false">لا</MenuItem>
@@ -188,7 +188,7 @@ export default function AdminPanel() {
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
-                    <InputLabel>جاردن</InputLabel>
+                    <InputLabel sx={{ color: '#2196f3', fontWeight: 'bold' }}>جاردن</InputLabel>
                     <Select value={unitForm.garden ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, garden: e.target.value === "true" }))} label="جاردن">
                       <MenuItem value="true">نعم</MenuItem>
                       <MenuItem value="false">لا</MenuItem>
@@ -197,7 +197,7 @@ export default function AdminPanel() {
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <FormControl fullWidth>
-                    <InputLabel>غرفة حرس</InputLabel>
+                    <InputLabel sx={{ color: '#2196f3', fontWeight: 'bold' }}>غرفة حرس</InputLabel>
                     <Select value={unitForm.guardRoom ? "true" : "false"} onChange={e => setUnitForm(f => ({ ...f, guardRoom: e.target.value === "true" }))} label="غرفة حرس">
                       <MenuItem value="true">نعم</MenuItem>
                       <MenuItem value="false">لا</MenuItem>
@@ -205,7 +205,7 @@ export default function AdminPanel() {
                   </FormControl>
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '66.66%' } }}>
-                  <TextField label="الموقع على الخريطة (رابط)" fullWidth value={unitForm.location} onChange={e => setUnitForm(f => ({ ...f, location: e.target.value }))} />
+                  <TextField label="الموقع على الخريطة (رابط)" fullWidth value={unitForm.location} onChange={e => setUnitForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth>
@@ -254,7 +254,7 @@ export default function AdminPanel() {
                     }} />
                   </Button>
                 </Box>
-              </Grid>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setUnitDialog(false)}>إلغاء</Button>
@@ -412,15 +412,35 @@ export default function AdminPanel() {
         <Box mt={2}>
           <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setBgDialog(true)}>إضافة خلفية</Button>
           <Grid container spacing={2} mt={1}>
-            {backgrounds.map((bg, i) => (
+            {backgrounds.slice(0, 4).map((bg, i) => (
               <Box key={i} sx={{ width: { xs: '50%', md: '25%' }, display: 'flex' }}>
                 <Card sx={{ width: '100%' }}>
                   <CardMedia image={bg} sx={{ height: 120 }} />
                   <CardActions>
                     <IconButton color="error" onClick={async () => {
                       // حذف الخلفية من فايرستور وستوريج
-                      // ...
+                      const snap = await getDocs(collection(db, 'backgrounds'));
+                      const docId = snap.docs[i]?.id;
+                      if (docId) {
+                        await deleteDoc(doc(db, 'backgrounds', docId));
+                        setBackgrounds(backgrounds.filter((_, idx) => idx !== i));
+                      }
                     }}><Delete /></IconButton>
+                    <Button component="label" startIcon={<CloudUpload />} size="small">
+                      استبدال
+                      <input type="file" hidden accept="image/*" onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadImage(file, 'backgrounds');
+                          const snap = await getDocs(collection(db, 'backgrounds'));
+                          const docId = snap.docs[i]?.id;
+                          if (docId) {
+                            await updateDoc(doc(db, 'backgrounds', docId), { url });
+                            setBackgrounds(backgrounds.map((b, idx) => idx === i ? url : b));
+                          }
+                        }
+                      }} />
+                    </Button>
                   </CardActions>
                 </Card>
               </Box>
@@ -440,7 +460,7 @@ export default function AdminPanel() {
                     if (file) {
                       const url = await uploadImage(file, 'backgrounds');
                       await addDoc(collection(db, 'backgrounds'), { url });
-                      setBackgrounds([...backgrounds, url]);
+                      setBackgrounds([...backgrounds, url].slice(0, 4));
                       setBgDialog(false);
                     }
                   }}
@@ -448,6 +468,16 @@ export default function AdminPanel() {
               </Button>
             </DialogContent>
           </Dialog>
+          <Box mt={2}>
+            <Button variant="contained" color="primary" onClick={async () => {
+              // حفظ الترتيب الحالي للصور (يتم حذف كل الصور ثم إعادة رفع الحالية)
+              const snap = await getDocs(collection(db, 'backgrounds'));
+              // حذف كل الصور القديمة
+              await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'backgrounds', d.id))));
+              // إضافة الصور الحالية
+              await Promise.all(backgrounds.slice(0, 4).map(url => addDoc(collection(db, 'backgrounds'), { url })));
+            }}>حفظ الخلفيات</Button>
+          </Box>
         </Box>
       )}
       {/* تبويب السلايدر */}
