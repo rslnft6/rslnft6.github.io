@@ -7,6 +7,7 @@ import { Add, Edit, Delete, CloudUpload } from '@mui/icons-material';
 import DemoEmployees from './DemoEmployees';
 import AdsPanel from './AdsPanel';
 import ContactLinksPanel from './ContactLinksPanel';
+import PagesEditor from './PagesEditor';
 
 // تعريف أنواع البيانات للوحدات والمطورين والكمباوندات والخلفيات
 export type Unit = {
@@ -131,21 +132,32 @@ export default function AdminPanel() {
       </Box>
       <Typography variant="subtitle1" sx={{color:'#bbb',mb:2,textAlign:'center',fontSize:22}}>كل التعديلات تظهر فوراً في التطبيق</Typography>
       {/* تبويبات عصرية */}
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 4, '.MuiTab-root': { color: '#fff', fontWeight: 'bold', fontSize: 22, borderRadius: 3, px:4, transition:'0.2s', textTransform:'none', letterSpacing:1 }, '.Mui-selected': { color: '#181c2a !important', background:'#00bcd4', boxShadow:'0 2px 16px #00bcd455' } }}>
-        <Tab label="الوحدات" />
-        <Tab label="الموظفين" />
-        <Tab label="المطورين" />
-        <Tab label="الكمباوندات" />
-        <Tab label="الإعلانات" />
-        <Tab label="الخلفيات" />
-        <Tab label="الشريط الكتابي" />
-        <Tab label="تواصل معنا" />
-        <Tab label="إدارة الصفحات" />
-      </Tabs>
+      {/* تعريف عدد التبويبات بشكل ديناميكي */}
+      {(() => {
+        const tabLabels = [
+          'الوحدات',
+          'الموظفين',
+          'المطورين',
+          'الكمباوندات',
+          'الإعلانات',
+          'الخلفيات',
+          'الشريط الكتابي',
+          'تواصل معنا',
+          'إدارة الصفحات',
+        ];
+        // إذا كانت قيمة tab خارج النطاق، أعدها للصفر
+        if (tab < 0 || tab >= tabLabels.length) setTab(0);
+        return (
+          <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 4, '.MuiTab-root': { color: '#fff', fontWeight: 'bold', fontSize: 22, borderRadius: 3, px:4, transition:'0.2s', textTransform:'none', letterSpacing:1 }, '.Mui-selected': { color: '#181c2a !important', background:'#00bcd4', boxShadow:'0 2px 16px #00bcd455' } }}>
+            {tabLabels.map((label, idx) => <Tab key={idx} label={label} />)}
+          </Tabs>
+        );
+      })()}
       {/* تبويب إدارة الصفحات */}
       {tab === 8 && (
         <Box mt={2}>
           <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الصفحات الرئيسية</Typography>
+          {/* استيراد PagesEditor بشكل صحيح */}
           <PagesEditor setSnackbar={setSnackbar} />
         </Box>
       )}
