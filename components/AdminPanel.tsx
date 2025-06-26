@@ -97,6 +97,11 @@ export default function AdminPanel() {
   // الشريط الكتابي
   const [marquee, setMarquee] = useState<Marquee>({ texts: [], speed: 30, color: '#ff9800', fontSize: 20 });
   const [marqueeDialog, setMarqueeDialog] = useState(false);
+  // موظفين
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [employeeDialog, setEmployeeDialog] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+  const [employeeForm, setEmployeeForm] = useState<any>({ username: '', password: '', role: 'موظف' });
 
   // جلب البيانات من فايرستور
   useEffect(() => {
@@ -108,6 +113,7 @@ export default function AdminPanel() {
     getDocs(collection(db, 'marquee')).then(snap => {
       if (snap.docs.length > 0) setMarquee(snap.docs[0].data() as Marquee);
     });
+    getDocs(collection(db, 'employees')).then(snap => setEmployees(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, []);
 
   return (
@@ -163,13 +169,26 @@ export default function AdminPanel() {
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="الدولة (مثال: مصر)" fullWidth value={unitForm.country} onChange={e => setUnitForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
+                {/* اختيار المطور والكمباوند من قائمة */}
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الكمباوند (مثال: ماونتن فيو)" fullWidth value={unitForm.compound} onChange={e => setUnitForm(f => ({ ...f, compound: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
+                  <FormControl fullWidth>
+                    <InputLabel sx={{ color: '#2196f3', fontWeight: 'bold' }}>المطور</InputLabel>
+                    <Select value={unitForm.developer} onChange={e => setUnitForm(f => ({ ...f, developer: e.target.value }))} label="المطور">
+                      <MenuItem value="">اختر المطور</MenuItem>
+                      {developers.map(dev => <MenuItem key={dev.id} value={dev.name}>{dev.name}</MenuItem>)}
+                    </Select>
+                  </FormControl>
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="المطور (مثال: سوديك)" fullWidth value={unitForm.developer} onChange={e => setUnitForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
+                  <FormControl fullWidth>
+                    <InputLabel sx={{ color: '#2196f3', fontWeight: 'bold' }}>الكمباوند</InputLabel>
+                    <Select value={unitForm.compound} onChange={e => setUnitForm(f => ({ ...f, compound: e.target.value }))} label="الكمباوند">
+                      <MenuItem value="">اختر الكمباوند</MenuItem>
+                      {compounds.map(comp => <MenuItem key={comp.id} value={comp.name}>{comp.name}</MenuItem>)}
+                    </Select>
+                  </FormControl>
                 </Box>
-                <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="المساحة (م²)" fullWidth value={unitForm.area} onChange={e => setUnitForm(f => ({ ...f, area: e.target.value }))} InputLabelProps={{ style: { color: '#2196f3', fontWeight: 'bold' } }} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
@@ -288,9 +307,56 @@ export default function AdminPanel() {
       {/* تبويب الموظفين */}
       {tab === 1 && (
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الموظفين</Typography>
-          {/* استدعاء مكون الموظفين */}
-          {/* إذا كان لديك مكون DemoEmployees */}
-          <DemoEmployees />
+          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
+          <Grid container spacing={2} mt={1}>
+            {employees.map(emp => (
+              <Box key={emp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
+                  <CardContent>
+                    <Typography variant="h6">{emp.username}</Typography>
+                    <Typography variant="body2">الدور: {emp.role}</Typography>
+                  </CardContent>
+                  <CardActions>
+                    <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit /></IconButton>
+                    <IconButton color="error" onClick={async () => { await deleteDoc(doc(db, 'employees', emp.id!)); setEmployees(employees.filter(e => e.id !== emp.id)); }}><Delete /></IconButton>
+                  </CardActions>
+                </Card>
+              </Box>
+            ))}
+          </Grid>
+          {/* حوار إضافة/تعديل موظف */}
+          <Dialog open={employeeDialog} onClose={() => setEmployeeDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>{editingEmployee ? 'تعديل موظف' : 'إضافة موظف'}</DialogTitle>
+            <DialogContent>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, username: e.target.value }))} />
+                <TextField label="كلمة السر" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, password: e.target.value }))} />
+                <FormControl fullWidth>
+                  <InputLabel>الدور</InputLabel>
+                  <Select value={employeeForm.role} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, role: e.target.value }))} label="الدور">
+                    <MenuItem value="مدير">مدير</MenuItem>
+                    <MenuItem value="مشرف">مشرف</MenuItem>
+                    <MenuItem value="بروكر">بروكر</MenuItem>
+                    <MenuItem value="تسويق">تسويق</MenuItem>
+                    <MenuItem value="موظف">موظف</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setEmployeeDialog(false)}>إلغاء</Button>
+              <Button variant="contained" onClick={async () => {
+                if (editingEmployee) {
+                  await updateDoc(doc(db, 'employees', editingEmployee.id!), employeeForm);
+                  setEmployees(employees.map(e => e.id === editingEmployee.id ? { ...e, ...employeeForm } : e));
+                } else {
+                  const docRef = await addDoc(collection(db, 'employees'), employeeForm);
+                  setEmployees([...employees, { ...employeeForm, id: docRef.id }]);
+                }
+                setEmployeeDialog(false);
+              }}>{editingEmployee ? 'تحديث' : 'إضافة'}</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
       {/* تبويب المطورين */}
@@ -431,9 +497,65 @@ export default function AdminPanel() {
       {/* تبويب الإعلانات (السلايدر) */}
       {tab === 4 && (
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الإعلانات (السلايدر)</Typography>
-          {/* استدعاء مكون الإعلانات */}
-          {/* إذا كان لديك مكون AdsPanel */}
-          <AdsPanel />
+          <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setSliderDialog(true)} sx={{mb:2}}>إضافة إعلان</Button>
+          <Grid container spacing={2} mt={1}>
+            {slider.map((img, i) => (
+              <Box key={i} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%' }}>
+                  <CardMedia image={img} sx={{ height: 120 }} />
+                  <CardActions>
+                    <IconButton color="error" onClick={async () => {
+                      // حذف صورة من السلايدر
+                      const newSlider = slider.filter((_, idx) => idx !== i);
+                      setSlider(newSlider);
+                    }}><Delete /></IconButton>
+                    <Button component="label" startIcon={<CloudUpload />} size="small">
+                      استبدال
+                      <input type="file" hidden accept="image/*" onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadImage(file, 'slider');
+                          setSlider(slider.map((s, idx) => idx === i ? url : s));
+                        }
+                      }} />
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Box>
+            ))}
+          </Grid>
+          <Dialog open={sliderDialog} onClose={() => setSliderDialog(false)}>
+            <DialogTitle>إضافة صورة إعلان للسلايدر</DialogTitle>
+            <DialogContent>
+              <Button component="label" startIcon={<CloudUpload />} fullWidth>
+                رفع صورة إعلان
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const url = await uploadImage(file, 'slider');
+                      setSlider(prev => [...prev, url].slice(0, 10));
+                      setSliderDialog(false);
+                    }
+                  }}
+                />
+              </Button>
+            </DialogContent>
+          </Dialog>
+          <Box mt={2}>
+            <Button variant="contained" color="primary" onClick={async () => {
+              // حفظ السلايدر في فايرستور
+              const snap = await getDocs(collection(db, 'slider'));
+              await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'slider', d.id))));
+              await Promise.all(slider.slice(0, 10).map(url => addDoc(collection(db, 'slider'), { url })));
+              // تحديث السلايدر من فايرستور بعد الحفظ
+              const newSnap = await getDocs(collection(db, 'slider'));
+              setSlider(newSnap.docs.map(d => d.data().url as string));
+            }}>حفظ السلايدر</Button>
+          </Box>
         </Box>
       )}
       {/* تبويب الخلفيات */}
@@ -488,9 +610,8 @@ export default function AdminPanel() {
                     const file = e.target.files?.[0];
                     if (file) {
                       const url = await uploadImage(file, 'backgrounds');
-                      await addDoc(collection(db, 'backgrounds'), { url });
-                      setBackgrounds([...backgrounds, url].slice(0, 4));
-                      setBgDialog(false);
+                      setBackgrounds(prev => [...prev, url].slice(0, 4));
+                      setBgDialog(false); // إغلاق الحوار مباشرة بعد اختيار الصورة
                     }
                   }}
                 />
@@ -505,6 +626,9 @@ export default function AdminPanel() {
               await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'backgrounds', d.id))));
               // إضافة الصور الحالية
               await Promise.all(backgrounds.slice(0, 4).map(url => addDoc(collection(db, 'backgrounds'), { url })));
+              // تحديث الخلفيات من فايرستور بعد الحفظ
+              const newSnap = await getDocs(collection(db, 'backgrounds'));
+              setBackgrounds(newSnap.docs.map(d => d.data().url as string));
             }}>حفظ الخلفيات</Button>
           </Box>
         </Box>
