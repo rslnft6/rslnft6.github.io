@@ -259,13 +259,6 @@ export default function Home() {
     setAnchorEl(null);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBgIndex(i => (i + 1) % BACKGROUND_IMAGES.length);
-    }, 7000); // تبديل كل 7 ثوانٍ
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="container" style={{
       minHeight: '100vh',
@@ -394,12 +387,17 @@ export default function Home() {
               minWidth:'100%'
             }}>
               {(sliderImages.length === 0 ? [
-                {img: '/images/bg1.png', id: 1, details: 'إعلان افتراضي 1'},
-                {img: '/images/bg2.png', id: 2, details: 'إعلان افتراضي 2'},
-                {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3'}
-              ] : sliderImages.map((img, i) => ({img, id: i, details: `تفاصيل الإعلان ${i+1}`}))).map((ad, i) => (
+                {img: '/images/bg1.png', id: 1, details: 'إعلان افتراضي 1', link: '/ads/1'},
+                {img: '/images/bg2.png', id: 2, details: 'إعلان افتراضي 2', link: '/ads/2'},
+                {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3', link: '/ads/3'}
+              ] : sliderImages.map((imgObj: any, i: number) => ({
+                img: typeof imgObj === 'string' ? imgObj : imgObj.url,
+                id: i,
+                details: imgObj.title || `تفاصيل الإعلان ${i+1}`,
+                link: imgObj.link || `/ads/${i}`
+              }))).map((ad, i) => (
                 <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
-                  <a href={`/ads/${ad.id}`} style={{display:'block'}}>
+                  <a href={ad.link} style={{display:'block'}} target="_blank" rel="noopener noreferrer">
                     <img src={ad.img} alt={`ad${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer'}} />
                   </a>
                   <span style={{marginTop:8,color:'#00bcd4',fontWeight:'bold',fontSize:16}}>{ad.details}</span>

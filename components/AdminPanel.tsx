@@ -4,6 +4,8 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Tabs, Tab, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Select, MenuItem, InputLabel, FormControl, Grid, Card, CardMedia, CardContent, CardActions } from '@mui/material';
 import { Add, Edit, Delete, CloudUpload } from '@mui/icons-material';
+import DemoEmployees from './DemoEmployees';
+import AdsPanel from './AdsPanel';
 
 // تعريف أنواع البيانات للوحدات والمطورين والكمباوندات والخلفيات
 export type Unit = {
@@ -109,17 +111,19 @@ export default function AdminPanel() {
 
   return (
     <Box sx={{ width: '100%', minHeight: '100vh', typography: 'body1', p: 2, bgcolor: 'rgba(240,248,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: 4, boxShadow: 3 }}>
+      <Typography variant="h5" sx={{color:'#00bcd4',fontWeight:'bold',mb:2,textAlign:'center'}}>لوحة التحكم الرئيسية<br /><span style={{fontSize:16,color:'#888'}}>أي تغيير يتم حفظه ويظهر فوراً في التطبيق</span></Typography>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 3, '.MuiTab-root': { color: '#2196f3', fontWeight: 'bold', fontSize: 18 }, '.Mui-selected': { color: '#00bcd4 !important' } }}>
         <Tab label="الوحدات" />
+        <Tab label="الموظفين" />
         <Tab label="المطورين" />
         <Tab label="الكمباوندات" />
+        <Tab label="الإعلانات" />
         <Tab label="الخلفيات" />
-        <Tab label="السلايدر" />
         <Tab label="الشريط الكتابي" />
       </Tabs>
       {/* تبويب الوحدات */}
       {tab === 0 && (
-        <Box mt={2}>
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الوحدات العقارية</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingUnit(null); setUnitForm({ title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: '' }); setUnitDialog(true); }}>إضافة وحدة</Button>
           <Grid container spacing={2} mt={1}>
             {units.map(unit => (
@@ -272,9 +276,17 @@ export default function AdminPanel() {
           </Dialog>
         </Box>
       )}
-      {/* تبويب المطورين */}
+      {/* تبويب الموظفين */}
       {tab === 1 && (
-        <Box mt={2}>
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الموظفين</Typography>
+          {/* استدعاء مكون الموظفين */}
+          {/* إذا كان لديك مكون DemoEmployees */}
+          <DemoEmployees />
+        </Box>
+      )}
+      {/* تبويب المطورين */}
+      {tab === 2 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة المطورين العقاريين</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
           <Grid container spacing={2} mt={1}>
             {developers.map(dev => (
@@ -341,8 +353,8 @@ export default function AdminPanel() {
         </Box>
       )}
       {/* تبويب الكمباوندات */}
-      {tab === 2 && (
-        <Box mt={2}>
+      {tab === 3 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الكمباوندات</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
           <Grid container spacing={2} mt={1}>
             {compounds.map(comp => (
@@ -407,9 +419,17 @@ export default function AdminPanel() {
           </Dialog>
         </Box>
       )}
+      {/* تبويب الإعلانات (السلايدر) */}
+      {tab === 4 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الإعلانات (السلايدر)</Typography>
+          {/* استدعاء مكون الإعلانات */}
+          {/* إذا كان لديك مكون AdsPanel */}
+          <AdsPanel />
+        </Box>
+      )}
       {/* تبويب الخلفيات */}
-      {tab === 3 && (
-        <Box mt={2}>
+      {tab === 5 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الخلفيات الرئيسية</Typography>
           <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setBgDialog(true)}>إضافة خلفية</Button>
           <Grid container spacing={2} mt={1}>
             {backgrounds.slice(0, 4).map((bg, i) => (
@@ -480,52 +500,9 @@ export default function AdminPanel() {
           </Box>
         </Box>
       )}
-      {/* تبويب السلايدر */}
-      {tab === 4 && (
-        <Box mt={2}>
-          <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setSliderDialog(true)}>إضافة صورة للسلايدر</Button>
-          <Grid container spacing={2} mt={1}>
-            {slider.map((img, i) => (
-              <Box key={i} sx={{ width: { xs: '50%', md: '25%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%' }}>
-                  <CardMedia image={img} sx={{ height: 120 }} />
-                  <CardActions>
-                    <IconButton color="error" onClick={async () => {
-                      // حذف صورة السلايدر من فايرستور وستوريج
-                      // ...
-                    }}><Delete /></IconButton>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          <Dialog open={sliderDialog} onClose={() => setSliderDialog(false)}>
-            <DialogTitle>إضافة صورة للسلايدر</DialogTitle>
-            <DialogContent>
-              <Button component="label" startIcon={<CloudUpload />} fullWidth>
-                رفع صورة
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const url = await uploadImage(file, 'slider');
-                      await addDoc(collection(db, 'slider'), { url });
-                      setSlider([...slider, url]);
-                      setSliderDialog(false);
-                    }
-                  }}
-                />
-              </Button>
-            </DialogContent>
-          </Dialog>
-        </Box>
-      )}
       {/* تبويب الشريط الكتابي */}
-      {tab === 5 && (
-        <Box mt={2}>
+      {tab === 6 && (
+        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الشريط الكتابي المتحرك</Typography>
           <Button variant="contained" startIcon={<Edit />} onClick={() => setMarqueeDialog(true)}>تعديل الشريط الكتابي</Button>
           <Box mt={2}>
             <Typography>النصوص الحالية:</Typography>
