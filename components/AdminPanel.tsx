@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Autocomplete from '@mui/material/Autocomplete';
 import { db } from '../data/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Tabs, Tab, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Typography, Select, MenuItem, InputLabel, FormControl, Grid, Card, CardMedia, CardContent, CardActions, Snackbar, Alert, Chip, CircularProgress } from '@mui/material';
 import { Add, Edit, Delete, CloudUpload } from '@mui/icons-material';
@@ -8,6 +9,8 @@ import DemoEmployees from './DemoEmployees';
 import AdsPanel from './AdsPanel';
 import ContactLinksPanel from './ContactLinksPanel';
 import PagesEditor from './PagesEditor';
+import MapPicker from './MapPicker';
+import ImageUploader from './ImageUploader';
 
 // تعريف أنواع البيانات للوحدات والمطورين والكمباوندات والخلفيات
 export type Unit = {
@@ -27,6 +30,8 @@ export type Unit = {
   garden: boolean;
   guardRoom: boolean;
   location: string;
+  lat?: number;
+  lng?: number;
   images: string[];
   panorama: string[];
   model3d: string;
@@ -48,6 +53,8 @@ export type Compound = {
   country: string;
   developer: string;
   location: string;
+  lat?: number;
+  lng?: number;
   images: string[];
 };
 
@@ -70,6 +77,95 @@ function uploadImage(file: File, path: string): Promise<string> {
   });
 }
 
+// مكون البحث الذكي (Autocomplete) للوحدات والكمباوندات والمطورين
+function SmartSearch({ units, compounds, developers }: { units: any[], compounds: any[], developers: any[] }) {
+  const [input, setInput] = useState('');
+  const [options, setOptions] = useState<any[]>([]);
+  useEffect(() => {
+    if (!input) { setOptions([]); return; }
+    const q = input.toLowerCase();
+    const unitOpts = units.filter(u => u.title?.toLowerCase().includes(q)).map(u => ({ type: 'unit', label: u.title, id: u.id }));
+    const compOpts = compounds.filter(c => c.name?.toLowerCase().includes(q)).map(c => ({ type: 'compound', label: c.name, id: c.id }));
+    const devOpts = developers.filter(d => d.name?.toLowerCase().includes(q)).map(d => ({ type: 'developer', label: d.name, id: d.id }));
+    setOptions([...unitOpts, ...compOpts, ...devOpts].slice(0, 8));
+  }, [input, units, compounds, developers]);
+  return (
+    <Autocomplete
+      freeSolo
+      options={options}
+      getOptionLabel={o => o.label || ''}
+      onInputChange={(_, v) => setInput(v)}
+      onChange={(_, v) => {
+        if (!v) return;
+        if (v.type === 'unit') window.open(`/property/${v.id}`, '_blank');
+        if (v.type === 'compound') window.open(`/compounds/${v.id}`, '_blank');
+        if (v.type === 'developer') window.open(`/developers/${v.id}`, '_blank');
+      }}
+      renderInput={params => (
+        <TextField {...params} label="بحث سريع (عنوان، مطور، كمباوند)" variant="outlined" sx={{ bgcolor:'#fff', borderRadius:2, minWidth:260 }} />
+      )}
+      sx={{ minWidth: 260, maxWidth: 400, mx: 'auto', mb: 2 }}
+    />
+  );
+}
+
+// مكون مقارنة الوحدات
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+
+function UnitsCompareDialog({ open, onClose, units }: { open: boolean, onClose: () => void, units: any[] }) {
+  if (!open || units.length < 2) return null;
+  const fields = [
+    { key: 'title', label: 'العنوان' },
+    { key: 'country', label: 'الدولة' },
+    { key: 'compound', label: 'الكمباوند' },
+    { key: 'developer', label: 'المطور' },
+    { key: 'area', label: 'المساحة (م²)' },
+    { key: 'minPrice', label: 'السعر الأدنى' },
+    { key: 'maxPrice', label: 'السعر الأقصى' },
+    { key: 'rooms', label: 'الغرف' },
+    { key: 'baths', label: 'الحمامات' },
+    { key: 'kitchen', label: 'المطابخ' },
+    { key: 'floors', label: 'الأدوار' },
+    { key: 'pool', label: 'حمام سباحة' },
+    { key: 'garden', label: 'جاردن' },
+    { key: 'guardRoom', label: 'غرفة حرس' },
+  ];
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
+      <DialogTitle sx={{fontWeight:'bold', color:'#00bcd4'}}>مقارنة الوحدات العقارية</DialogTitle>
+      <DialogContent sx={{overflowX:'auto'}}>
+        <Box sx={{display:'flex',gap:2,mb:2}}>
+          {units.map((u,i)=>(
+            <Box key={i} sx={{textAlign:'center'}}>
+              <img src={u.images?.[0]||'/images/bg1.png'} alt="img" style={{width:120,height:90,borderRadius:8,objectFit:'cover',border:'2px solid #00bcd4'}} />
+              <Typography sx={{fontWeight:'bold',color:'#00bcd4',mt:1}}>{u.title}</Typography>
+            </Box>
+          ))}
+        </Box>
+        <Box component="table" sx={{width:'100%',borderCollapse:'collapse',bgcolor:'#23263a',borderRadius:3,overflow:'hidden'}}>
+          <thead>
+            <tr>
+              <th style={{color:'#00bcd4',fontWeight:'bold',padding:8,textAlign:'right'}}>الميزة</th>
+              {units.map((u,i)=>(<th key={i} style={{color:'#fff',fontWeight:'bold',padding:8}}>{u.title}</th>))}
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map(f=>(
+              <tr key={f.key} style={{borderBottom:'1px solid #333'}}>
+                <td style={{color:'#00bcd4',fontWeight:'bold',padding:8}}>{f.label}</td>
+                {units.map((u,i)=>(<td key={i} style={{color:'#fff',padding:8}}>{typeof u[f.key]==='boolean' ? (u[f.key]?'✔️':'❌') : u[f.key]}</td>))}
+              </tr>
+            ))}
+          </tbody>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>إغلاق</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export default function AdminPanel() {
   // إشعارات
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity?: 'success'|'error'|'info'|'warning'}>({open: false, message: ''});
@@ -83,8 +179,11 @@ export default function AdminPanel() {
   const [unitDialog, setUnitDialog] = useState(false);
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [unitForm, setUnitForm] = useState<Unit>({
-    title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: ''
+    title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', lat: 30.0444, lng: 31.2357, images: [], panorama: [], model3d: '', vr: ''
   });
+  // مقارنة الوحدات
+  const [compareUnits, setCompareUnits] = useState<Unit[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
   // مطورين
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [devDialog, setDevDialog] = useState(false);
@@ -94,7 +193,7 @@ export default function AdminPanel() {
   const [compounds, setCompounds] = useState<Compound[]>([]);
   const [compoundDialog, setCompoundDialog] = useState(false);
   const [editingCompound, setEditingCompound] = useState<Compound | null>(null);
-  const [compoundForm, setCompoundForm] = useState<Compound>({ name: '', country: '', developer: '', location: '', images: [] });
+  const [compoundForm, setCompoundForm] = useState<Compound>({ name: '', country: '', developer: '', location: '', lat: 30.0444, lng: 31.2357, images: [] });
   // الخلفيات
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [bgDialog, setBgDialog] = useState(false);
@@ -112,27 +211,52 @@ export default function AdminPanel() {
 
   // جلب البيانات من فايرستور
   useEffect(() => {
-    getDocs(collection(db, 'units')).then(snap => setUnits(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Unit)));
-    getDocs(collection(db, 'developers')).then(snap => setDevelopers(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Developer)));
-    getDocs(collection(db, 'compounds')).then(snap => setCompounds(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Compound)));
-    getDocs(collection(db, 'backgrounds')).then(snap => setBackgrounds(snap.docs.map(d => d.data().url as string)));
-    getDocs(collection(db, 'slider')).then(snap => setSlider(snap.docs.map(d => d.data().url as string)));
-    getDocs(collection(db, 'marquee')).then(snap => {
+    const unsubUnits = onSnapshot(collection(db, 'units'), snap => setUnits(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Unit)));
+    const unsubDevs = onSnapshot(collection(db, 'developers'), snap => setDevelopers(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Developer));
+    const unsubCompounds = onSnapshot(collection(db, 'compounds'), snap => setCompounds(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Compound));
+    const unsubBackgrounds = onSnapshot(collection(db, 'backgrounds'), snap => setBackgrounds(snap.docs.map(d => d.data().url as string)));
+    const unsubSlider = onSnapshot(collection(db, 'slider'), snap => setSlider(snap.docs.map(d => d.data().url as string)));
+    const unsubMarquee = onSnapshot(collection(db, 'marquee'), snap => {
       if (snap.docs.length > 0) setMarquee(snap.docs[0].data() as Marquee);
     });
-    getDocs(collection(db, 'employees')).then(snap => setEmployees(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubEmployees = onSnapshot(collection(db, 'employees'), snap => setEmployees(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    return () => {
+      unsubUnits();
+      unsubDevs();
+      unsubCompounds();
+      unsubBackgrounds();
+      unsubSlider();
+      unsubMarquee();
+      unsubEmployees();
+    };
   }, []);
 
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', p: { xs: 2, md: 6 }, bgcolor: '#181c2a', backdropFilter: 'blur(18px)', borderRadius: 8, boxShadow: 12, maxWidth: 1500, margin: '32px auto', position: 'relative', color: '#fff', fontFamily: 'Cairo, Tahoma, Arial' }}>
-      {/* ترويسة عصرية */}
-      <Box sx={{display:'flex',alignItems:'center',justifyContent:'center',gap:2,mb:3}}>
+    <Box sx={{
+      width: '100vw',
+      minHeight: '100vh',
+      p: { xs: 1, md: 4 },
+      bgcolor: '#181c2a',
+      backdropFilter: 'blur(18px)',
+      borderRadius: { xs: 0, md: 8 },
+      boxShadow: 12,
+      maxWidth: '100vw',
+      margin: '0 auto',
+      position: 'relative',
+      color: '#fff',
+      fontFamily: 'Cairo, Tahoma, Arial',
+      overflowX: 'hidden',
+    }}>
+      {/* ترويسة عصرية + البحث الذكي */}
+      <Box sx={{display:'flex',alignItems:'center',justifyContent:'center',gap:2,mb:3,flexWrap:'wrap'}}>
         <img src="/images/logo1.png" alt="logo" style={{width:64,height:64,borderRadius:16,boxShadow:'0 2px 16px #00bcd4'}} />
         <Typography variant="h3" sx={{color:'#00bcd4',fontWeight:'bold',letterSpacing:2, textShadow:'0 2px 8px #000'}}>لوحة التحكم</Typography>
+        <Box sx={{flex:1, minWidth:260, maxWidth:400}}>
+          <SmartSearch units={units} compounds={compounds} developers={developers} />
+        </Box>
       </Box>
       <Typography variant="subtitle1" sx={{color:'#bbb',mb:2,textAlign:'center',fontSize:22}}>كل التعديلات تظهر فوراً في التطبيق</Typography>
-      {/* تبويبات عصرية */}
-      {/* تعريف عدد التبويبات بشكل ديناميكي */}
+      {/* تبويبات عصرية مع Scroll أفقي على الشاشات الصغيرة */}
       {(() => {
         const tabLabels = [
           'الوحدات',
@@ -145,12 +269,40 @@ export default function AdminPanel() {
           'تواصل معنا',
           'إدارة الصفحات',
         ];
-        // إذا كانت قيمة tab خارج النطاق، أعدها للصفر
         if (tab < 0 || tab >= tabLabels.length) setTab(0);
         return (
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} centered sx={{ mb: 4, '.MuiTab-root': { color: '#fff', fontWeight: 'bold', fontSize: 22, borderRadius: 3, px:4, transition:'0.2s', textTransform:'none', letterSpacing:1 }, '.Mui-selected': { color: '#181c2a !important', background:'#00bcd4', boxShadow:'0 2px 16px #00bcd455' } }}>
-            {tabLabels.map((label, idx) => <Tab key={idx} label={label} />)}
-          </Tabs>
+          <Box sx={{ width: '100%', overflowX: 'auto', mb: 4 }}>
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                minHeight: 64,
+                '.MuiTabs-flexContainer': { gap: { xs: 1, md: 2 } },
+                '.MuiTab-root': {
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: { xs: 16, sm: 18, md: 22 },
+                  borderRadius: 3,
+                  px: { xs: 2, md: 4 },
+                  py: 1.5,
+                  transition: '0.2s',
+                  textTransform: 'none',
+                  letterSpacing: 1,
+                  minHeight: 48,
+                },
+                '.Mui-selected': {
+                  color: '#181c2a !important',
+                  background: '#00bcd4',
+                  boxShadow: '0 2px 16px #00bcd455',
+                },
+              }}
+            >
+              {tabLabels.map((label, idx) => <Tab key={idx} label={label} />)}
+            </Tabs>
+          </Box>
         );
       })()}
       {/* تبويب إدارة الصفحات */}
@@ -164,30 +316,50 @@ export default function AdminPanel() {
       {/* باقي التبويبات كما هي (كل قسم داخل Card أو Box مع ظل وPadding) */}
       {/* تبويب الوحدات */}
       {tab === 0 && (
-        <Box mt={2}><Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الوحدات العقارية</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} onClick={() => { setEditingUnit(null); setUnitForm({ title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: '' }); setUnitDialog(true); }}>إضافة وحدة</Button>
-          <Grid container spacing={3} mt={1}>
-            {units.map(unit => (
-              <Box key={unit.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8 }}>
-                  <CardMedia image={unit.images?.[0] || '/images/bg1.png'} title={unit.title} sx={{ height: 180, borderRadius:4 }} />
-                  <CardContent>
-                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{unit.title}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>{unit.country} - {unit.compound}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>المساحة: {unit.area}م - السعر: {unit.minPrice} - {unit.maxPrice}</Typography>
-                  </CardContent>
-                  <CardActions>
-                    <IconButton onClick={() => { setEditingUnit(unit); setUnitForm(unit); setUnitDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الوحدة؟`, onConfirm: async () => {
-                      await deleteDoc(doc(db, 'units', unit.id!));
-                      setUnits(units.filter(u => u.id !== unit.id));
-                      setSnackbar({open: true, message: 'تم حذف الوحدة بنجاح', severity: 'success'});
-                    }})}><Delete /></IconButton>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
+        <Box mt={2}>
+          <Box sx={{display:'flex',alignItems:'center',gap:2,mb:1}}>
+            <Typography variant="h5" sx={{ color:'#00bcd4', fontWeight:'bold', fontSize: { xs: 22, md: 28 }}}>إدارة الوحدات العقارية</Typography>
+            {compareUnits.length > 1 && (
+              <Button startIcon={<CompareArrowsIcon />} variant="contained" sx={{bgcolor:'#00bcd4',color:'#181c2a',fontWeight:'bold'}} onClick={()=>setCompareOpen(true)}>
+                مقارنة ({compareUnits.length})
+              </Button>
+            )}
+          </Box>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingUnit(null); setUnitForm({ title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: '' }); setUnitDialog(true); }}>إضافة وحدة</Button>
+          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
+            {units.map(unit => {
+              const selected = compareUnits.some(u => u.id === unit.id);
+              return (
+                <Box key={unit.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
+                  <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+                    <CardMedia image={unit.images?.[0] || '/images/bg1.png'} title={unit.title} sx={{ height: { xs: 120, md: 180 }, borderRadius:4 }} />
+                    <CardContent>
+                      <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold', fontSize: { xs: 18, md: 22 }}}>{unit.title}</Typography>
+                      <Typography variant="body2" sx={{color:'#fff', fontSize: { xs: 14, md: 16 }}}>{unit.country} - {unit.compound}</Typography>
+                      <Typography variant="body2" sx={{color:'#fff', fontSize: { xs: 14, md: 16 }}}>المساحة: {unit.area}م - السعر: {unit.minPrice} - {unit.maxPrice}</Typography>
+                    </CardContent>
+                    <CardActions>
+                      <IconButton onClick={() => { setEditingUnit(unit); setUnitForm(unit); setUnitDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
+                      <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الوحدة؟`, onConfirm: async () => {
+                        await deleteDoc(doc(db, 'units', unit.id!));
+                        setUnits(units.filter(u => u.id !== unit.id));
+                        setSnackbar({open: true, message: 'تم حذف الوحدة بنجاح', severity: 'success'});
+                      }})}><Delete /></IconButton>
+                      <Button size="small" variant={selected ? "contained" : "outlined"} sx={{ml:1,bgcolor:selected?'#00bcd4':'#23263a',color:selected?'#181c2a':'#00bcd4',fontWeight:'bold'}} onClick={event => {
+                        event.stopPropagation();
+                        if(selected) {
+                          setCompareUnits(compareUnits.filter(u => u.id !== unit.id));
+                        } else {
+                          setCompareUnits(prev => prev.length >= 4 ? [...prev.slice(1), unit] : [...prev, unit]);
+                        }
+                      }}>{selected ? 'إزالة من المقارنة' : 'إضافة للمقارنة'}</Button>
+                    </CardActions>
+                  </Card>
+                </Box>
+              );
+            })}
           </Grid>
+          <UnitsCompareDialog open={compareOpen} onClose={()=>setCompareOpen(false)} units={compareUnits} />
           {/* حوار إضافة/تعديل وحدة */}
           <Dialog open={unitDialog} onClose={() => setUnitDialog(false)} maxWidth="md" fullWidth>
             <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
@@ -278,25 +450,22 @@ export default function AdminPanel() {
                   </FormControl>
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '66.66%' } }}>
-                  <TextField label="الموقع على الخريطة (رابط)" fullWidth value={unitForm.location} onChange={e => setUnitForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+                  <TextField label="العنوان أو وصف الموقع (اختياري)" fullWidth value={unitForm.location} onChange={e => setUnitForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+                  <MapPicker lat={unitForm.lat || 30.0444} lng={unitForm.lng || 31.2357} onChange={(lat, lng) => setUnitForm(f => ({ ...f, lat, lng }))} />
                 </Box>
                 {/* صور الوحدة */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
-                    {uploading ? <CircularProgress size={22} color="inherit" /> : 'رفع صور'}
-                    <input type="file" hidden multiple accept="image/*" onChange={async e => {
-                      if (!e.target.files) return;
+                  <ImageUploader
+                    images={unitForm.images || []}
+                    onAdd={async (files) => {
                       setUploading(true);
-                      const files = Array.from(e.target.files);
                       const urls = await Promise.all(files.map(file => uploadImage(file, 'units')));
                       setUnitForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
                       setUploading(false);
                       setSnackbar({open:true, message:'تم رفع الصور بنجاح', severity:'success'});
-                    }} />
-                  </Button>
-                  <Box sx={{display:'flex',flexWrap:'wrap',gap:1,mt:1}}>
-                    {unitForm.images?.map((img,i)=>(<img key={i} src={img} alt="img" style={{width:48,height:48,borderRadius:6,objectFit:'cover',border:'2px solid #00bcd4'}} />))}
-                  </Box>
+                    }}
+                    onRemove={(idx) => setUnitForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                  />
                 </Box>
                 {/* صور بانوراما */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
@@ -475,15 +644,14 @@ export default function AdminPanel() {
                   <TextField label="نبذة عن المطور" fullWidth multiline rows={3} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} />
                 </Box>
                 <Box sx={{ width: '100%' }}>
-                  <Button component="label" startIcon={<CloudUpload />} fullWidth>
-                    رفع صور مشاريع المطور
-                    <input type="file" hidden multiple accept="image/*" onChange={async e => {
-                      if (!e.target.files) return;
-                      const files = Array.from(e.target.files);
+                  <ImageUploader
+                    images={devForm.images || []}
+                    onAdd={async (files) => {
                       const urls = await Promise.all(files.map(file => uploadImage(file, 'developers')));
                       setDevForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
-                    }} />
-                  </Button>
+                    }}
+                    onRemove={(idx) => setDevForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                  />
                 </Box>
               </Box>
             </DialogContent>
@@ -545,18 +713,18 @@ export default function AdminPanel() {
                   <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الموقع على الخريطة (رابط)" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} />
+                  <TextField label="العنوان أو وصف الموقع (اختياري)" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} />
+                  <MapPicker lat={compoundForm.lat || 30.0444} lng={compoundForm.lng || 31.2357} onChange={(lat, lng) => setCompoundForm(f => ({ ...f, lat, lng }))} />
                 </Box>
                 <Box sx={{ width: '100%' }}>
-                  <Button component="label" startIcon={<CloudUpload />} fullWidth>
-                    رفع صور الكمباوند
-                    <input type="file" hidden multiple accept="image/*" onChange={async e => {
-                      if (!e.target.files) return;
-                      const files = Array.from(e.target.files);
+                  <ImageUploader
+                    images={compoundForm.images || []}
+                    onAdd={async (files) => {
                       const urls = await Promise.all(files.map(file => uploadImage(file, 'compounds')));
                       setCompoundForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
-                    }} />
-                  </Button>
+                    }}
+                    onRemove={(idx) => setCompoundForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                  />
                 </Box>
               </Box>
             </DialogContent>

@@ -2,10 +2,10 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { doc as fsDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../data/firebase';
+import Head from 'next/head';
 
 interface AdDetails {
-  img: string;
-  details: string;
+  url: string;
   title?: string;
   link?: string;
 }
@@ -20,8 +20,8 @@ export default function AdDetailsPage() {
     if (!id) return;
     async function fetchAd() {
       try {
-        // جلب بيانات الإعلان من فايرستور بلوحة التحكم
-        const ref = fsDoc(db, 'ads', String(id));
+        // جلب بيانات الإعلان من السلايدر (collection: slider)
+        const ref = fsDoc(db, 'slider', String(id));
         const snap = await getDoc(ref);
         if (snap.exists()) {
           setAd(snap.data() as AdDetails);
@@ -41,12 +41,12 @@ export default function AdDetailsPage() {
 
   return (
     <div style={{
-      maxWidth: 800,
-      margin: '40px auto',
+      maxWidth: 700,
+      margin: '32px auto',
       background: '#fff',
       borderRadius: 16,
       boxShadow: '0 2px 16px #e0e0e0',
-      padding: 24,
+      padding: 32,
       width: '95vw',
       minHeight: 400,
       display: 'flex',
@@ -54,10 +54,16 @@ export default function AdDetailsPage() {
       alignItems: 'center',
       boxSizing: 'border-box'
     }}>
-      <img src={ad.img} alt={ad.title || 'إعلان'} style={{maxWidth:'100%',borderRadius:12,marginBottom:24}} />
-      <h2 style={{color:'#00bcd4',marginBottom:16}}>{ad.title}</h2>
-      <div style={{fontSize:18,color:'#333',marginBottom:16,textAlign:'center'}}>{ad.details}</div>
-      {ad.link && <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{color:'#fff',background:'#00bcd4',padding:'10px 24px',borderRadius:8,textDecoration:'none',fontWeight:'bold'}}>زيارة الرابط</a>}
+      <Head>
+        <title>تفاصيل الإعلان</title>
+      </Head>
+      <img src={ad.url} alt={ad.title || 'إعلان'} style={{maxWidth:'100%',borderRadius:12,marginBottom:24}} />
+      <h2 style={{color:'#00bcd4',fontWeight:'bold',fontSize:28,marginBottom:12}}>تفاصيل الإعلان</h2>
+      <div style={{fontSize:18,marginBottom:16}}>{ad.title || 'إعلان عقاري مميز'}</div>
+      {ad.link && <a href={ad.link} target="_blank" rel="noopener noreferrer" style={{color:'#2196f3',fontWeight:'bold',fontSize:18}}>رابط خارجي</a>}
+      <div style={{marginTop:24}}>
+        <button onClick={()=>router.back()} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'10px 32px',fontWeight:'bold',fontSize:18,cursor:'pointer'}}>رجوع</button>
+      </div>
     </div>
   );
 }

@@ -8,6 +8,11 @@ import dynamic from 'next/dynamic';
 const ModelViewer = dynamic(() => import('../components/ModelViewer'), { ssr: false });
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 import { backgrounds } from '../data/backgrounds';
 import { compounds } from '../data/compounds';
 import { developers } from '../data/developers';
@@ -22,7 +27,7 @@ import AnimatedBackground from '../components/AnimatedBackground';
 import ImagesSlider from '../components/ImagesSlider';
 import SmartChat from '../components/SmartChat';
 import { db } from '../data/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { FaUserCircle } from 'react-icons/fa';
 import { defaultContacts, ContactLinks } from '../data/contacts';
 import { doc as fsDoc, getDoc } from 'firebase/firestore';
@@ -92,6 +97,9 @@ export default function Home() {
   const [maxUnits, setMaxUnits] = useState<number|undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number|undefined>(undefined);
   const [bgIndex, setBgIndex] = useState(0);
+  // مقارنة الوحدات
+  const [compareUnits, setCompareUnits] = useState<any[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
   // إضافة حالة صور الخلفية من فايرستور
   const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
 
@@ -138,11 +146,10 @@ export default function Home() {
 
   // جلب الوحدات من Firestore
   useEffect(() => {
-    async function fetchUnits() {
-      const snap = await getDocs(collection(db, 'units'));
+    const unsub = onSnapshot(collection(db, 'units'), snap => {
       setFirebaseUnits(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }
-    fetchUnits();
+    });
+    return () => unsub();
   }, []);
 
   // دمج وحدات فايرستور مع الوحدات المحلية
@@ -219,41 +226,27 @@ export default function Home() {
     fetchMarquee();
   }, []);
 
-  // جلب صور السلايدر من فايرستور
-  const [sliderImages, setSliderImages] = useState<string[]>([]);
+  // جلب صور السلايدر من فايرستور (Realtime)
+  const [sliderImages, setSliderImages] = useState<any[]>([]);
   useEffect(() => {
-    async function fetchSlider() {
-      try {
-        const ref = fsDoc(db, 'settings', 'slider');
-        const snap = await getDoc(ref);
-        if (snap.exists()) setSliderImages(snap.data().images || []);
-      } catch {}
-    }
-    fetchSlider();
+    const unsub = onSnapshot(collection(db, 'slider'), snap => {
+      setSliderImages(snap.docs.map(d => ({ url: d.data().url, id: d.id, ...d.data() }))); // يدعم {url, id, ...}
+    });
+    return () => unsub();
   }, []);
 
   // جلب صور الخلفية من فايرستور (collection: backgrounds)
   useEffect(() => {
-    async function fetchBackgrounds() {
-      try {
-        const snap = await getDocs(collection(db, 'backgrounds'));
-        const imgs = snap.docs.map(d => d.data().url).filter(Boolean);
-        setBackgroundImages(imgs.length > 0 ? imgs.slice(0, 4) : [
-          '/images/bg1.png',
-          '/images/bg2.png',
-          '/images/bg10.png',
-          '/images/bg4.png',
-        ]);
-      } catch {
-        setBackgroundImages([
-          '/images/bg1.png',
-          '/images/bg2.png',
-          '/images/bg10.png',
-          '/images/bg4.png',
-        ]);
-      }
-    }
-    fetchBackgrounds();
+    const unsub = onSnapshot(collection(db, 'backgrounds'), snap => {
+      const imgs = snap.docs.map(d => d.data().url).filter(Boolean);
+      setBackgroundImages(imgs.length > 0 ? imgs.slice(0, 4) : [
+        '/images/bg1.png',
+        '/images/bg2.png',
+        '/images/bg10.png',
+        '/images/bg4.png',
+      ]);
+    });
+    return () => unsub();
   }, []);
 
   useEffect(() => {
@@ -270,6 +263,21 @@ export default function Home() {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  // إضافة/إزالة وحدة من المقارنة
+  const handleCompareToggle = (property: any) => {
+    setCompareUnits(prev => {
+      const exists = prev.find(u => u.id === property.id);
+      if (exists) return prev.filter(u => u.id !== property.id);
+      if (prev.length >= 4) return prev; // حد أقصى 4 وحدات
+      return [...prev, property];
+    });
+  };
+
+  // زر المقارنة في القائمة العلوية
+  const handleCompareMenu = () => {
+    if (compareUnits.length > 0) setCompareOpen(true);
   };
 
   return (
@@ -328,6 +336,15 @@ export default function Home() {
             </Menu>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
+            {/* زر مقارنة الوحدات أعلى الصفحة */}
+            <button
+              onClick={handleCompareMenu}
+              title="مقارنة الوحدات"
+              style={{background: compareUnits.length > 0 ? '#00bcd4' : '#fff', color: compareUnits.length > 0 ? '#fff' : '#00bcd4', border:'2px solid #00bcd4', borderRadius:'50%', width:44, height:44, fontWeight:'bold', fontSize:18, cursor:'pointer', boxShadow:'0 2px 8px #e0e0e0', transition:'all 0.2s'}}
+            >
+              🔄
+              {compareUnits.length > 0 && <span style={{position:'absolute',top:2,right:2,background:'#ff9800',color:'#fff',borderRadius:'50%',fontSize:12,padding:'2px 6px',fontWeight:'bold'}}>{compareUnits.length}</span>}
+            </button>
             <img src="/images/logo1.png" alt="logo" style={{width:36,marginLeft:8}} />
             <button
               onClick={() => window.location.href = '/login'}
@@ -400,12 +417,12 @@ export default function Home() {
                 {img: '/images/bg10.jpg', id: 3, details: 'إعلان افتراضي 3', link: '/ads/3'}
               ] : sliderImages.map((imgObj: any, i: number) => ({
                 img: typeof imgObj === 'string' ? imgObj : imgObj.url,
-                id: i,
+                id: imgObj.id || i,
                 details: imgObj.title || `تفاصيل الإعلان ${i+1}`,
-                link: imgObj.link || `/ads/${i}`
+                link: `/ads/${imgObj.id || i}`
               }))).map((ad, i) => (
                 <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
-                  <a href={ad.link} style={{display:'block'}} target="_blank" rel="noopener noreferrer">
+                  <a href={ad.link} style={{display:'block'}} >
                     <img src={ad.img} alt={`ad${i}`} style={{height:120,borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',cursor:'pointer'}} />
                   </a>
                   <span style={{marginTop:8,color:'#00bcd4',fontWeight:'bold',fontSize:16}}>{ad.details}</span>
@@ -496,13 +513,49 @@ export default function Home() {
                   </div>
                   {/* أزرار مقارنة/مفضلة/مشاركة */}
                   <div style={{position:'absolute',top:8,left:8,display:'flex',gap:8}}>
-                    <button title="مقارنة" style={{background:'#fff',border:'1.5px solid #00bcd4',borderRadius:8,padding:4,cursor:'pointer'}}>🔄</button>
+                    <button
+                      title={compareUnits.find(u => u.id === property.id) ? "إزالة من المقارنة" : "إضافة للمقارنة"}
+                      style={{background: compareUnits.find(u => u.id === property.id) ? '#00bcd4' : '#fff', color: compareUnits.find(u => u.id === property.id) ? '#fff' : '#00bcd4', border:'1.5px solid #00bcd4',borderRadius:8,padding:4,cursor:'pointer',fontWeight:'bold'}}
+                      onClick={e => { e.stopPropagation(); handleCompareToggle(property); }}
+                    >🔄</button>
                     <button title="مفضلة" style={{background:'#fff',border:'1.5px solid #ff9800',borderRadius:8,padding:4,cursor:'pointer'}}>⭐</button>
                     <button title="مشاركة" style={{background:'#fff',border:'1.5px solid #2196f3',borderRadius:8,padding:4,cursor:'pointer'}}>🔗</button>
                   </div>
                 </div>
               </SwiperSlide>
             ))}
+          {/* نافذة مقارنة الوحدات */}
+          <Dialog open={compareOpen} onClose={()=>setCompareOpen(false)} maxWidth="xl" fullWidth>
+            <DialogTitle sx={{fontWeight:'bold',color:'#00bcd4',fontSize:26}}>مقارنة الوحدات العقارية</DialogTitle>
+            <DialogContent>
+              {compareUnits.length === 0 ? (
+                <div style={{textAlign:'center',color:'#888',fontWeight:'bold',fontSize:20}}>لم يتم اختيار وحدات للمقارنة بعد.</div>
+              ) : (
+                <div style={{display:'flex',gap:24,overflowX:'auto',padding:8}}>
+                  {compareUnits.map((unit,i)=>(
+                    <div key={unit.id} style={{minWidth:260,maxWidth:320,background:'#fff',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0',padding:16,position:'relative',color:'#181c2a'}}>
+                      <img src={unit.image || '/images/bg1.png'} alt={unit.title} style={{width:'100%',height:120,objectFit:'cover',borderRadius:12,marginBottom:8}} />
+                      <h3 style={{color:'#00bcd4',fontWeight:'bold',fontSize:20}}>{unit.title}</h3>
+                      <div style={{fontWeight:'bold',color:'#ff9800'}}>{unit.location}</div>
+                      <div style={{fontWeight:'bold',color:'#00e676'}}>{unit.details}</div>
+                      <div style={{margin:'8px 0'}}><b>المطور:</b> {unit.developer || '-'}</div>
+                      <div><b>الكمباوند:</b> {unit.compound || '-'}</div>
+                      <div><b>المساحة:</b> {unit.area || unit.size || '-'} م²</div>
+                      <div><b>السعر:</b> {unit.price || unit.minPrice || '-'} {unit.maxPrice ? `- ${unit.maxPrice}` : ''}</div>
+                      <div><b>عدد الغرف:</b> {unit.rooms || '-'}</div>
+                      <div><b>عدد الحمامات:</b> {unit.baths || '-'}</div>
+                      <div><b>مزايا:</b> {unit.pool ? 'حمام سباحة، ' : ''}{unit.garden ? 'حديقة، ' : ''}{unit.guardRoom ? 'غرفة حرس' : ''}</div>
+                      <Button color="error" variant="outlined" size="small" sx={{mt:1}} onClick={()=>setCompareUnits(prev=>prev.filter(u=>u.id!==unit.id))}>إزالة</Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={()=>setCompareOpen(false)} color="primary" variant="contained">إغلاق</Button>
+              {compareUnits.length > 0 && <Button color="error" onClick={()=>setCompareUnits([])}>مسح الكل</Button>}
+            </DialogActions>
+          </Dialog>
           </Swiper>
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
