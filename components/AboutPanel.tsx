@@ -4,8 +4,8 @@ import { doc as fsDoc, getDoc, setDoc } from 'firebase/firestore';
 
 
 // محرر نصوص غني (Rich Text Editor) بسيط
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
 const getInitialTheme = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -35,6 +35,16 @@ const translations = {
 
 const AboutPanel: React.FC = () => {
   const [aboutText, setAboutText] = useState('');
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: aboutText,
+    onUpdate: ({ editor }) => setAboutText(editor.getHTML()),
+    editorProps: {
+      attributes: {
+        style: `min-height:180px;font-size:18px;background:${theme === 'dark' ? '#23263a' : '#fff'};color:${theme === 'dark' ? '#fff' : '#181c2a'};border:1.5px solid #00bcd4;border-radius:12px;box-shadow:0 2px 8px rgba(0,188,212,0.08);direction:${lang === 'ar' ? 'rtl' : 'ltr'};transition:all 0.2s;`
+      }
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(getInitialTheme());
   const [lang, setLang] = useState<'ar'|'en'>(typeof window !== 'undefined' && window.localStorage.getItem('lang') === 'en' ? 'en' : 'ar');
@@ -55,12 +65,16 @@ const AboutPanel: React.FC = () => {
       try {
         const ref = fsDoc(db, 'settings', 'about');
         const snap = await getDoc(ref);
-        if (snap.exists()) setAboutText(snap.data().text || '');
+        if (snap.exists()) {
+          setAboutText(snap.data().text || '');
+          if (editor) editor.commands.setContent(snap.data().text || '');
+        }
       } catch {}
       setLoading(false);
     };
     fetchAbout();
-  }, [lang]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, editor]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,34 +178,9 @@ const AboutPanel: React.FC = () => {
         onSubmit={handleSave}
         style={{ width: '100%', maxWidth: 900 }}
       >
-        {/* محرر نصوص غني */}
+        {/* محرر نصوص غني tiptap */}
         <div style={{ marginBottom: 16 }}>
-          <ReactQuill
-            theme={theme === 'dark' ? 'snow' : 'snow'}
-            value={aboutText}
-            onChange={setAboutText}
-            placeholder={t.placeholder}
-            style={{
-              background: theme === 'dark' ? '#23263a' : '#fff',
-              color: theme === 'dark' ? '#fff' : '#181c2a',
-              border: '1.5px solid #00bcd4',
-              borderRadius: 12,
-              minHeight: 180,
-              fontSize: 18,
-              boxShadow: '0 2px 8px rgba(0,188,212,0.08)',
-              direction: lang === 'ar' ? 'rtl' : 'ltr',
-              transition: 'all 0.2s',
-            }}
-            modules={{
-              toolbar: [
-                [{ header: [1, 2, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['link', 'image'],
-                ['clean'],
-              ],
-            }}
-          />
+          <EditorContent editor={editor} />
         </div>
         <button
           className="glass-btn"
