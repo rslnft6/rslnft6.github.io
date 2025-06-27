@@ -35,6 +35,10 @@ const translations = {
 
 const AboutPanel: React.FC = () => {
   const [aboutText, setAboutText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState(getInitialTheme());
+  const [lang, setLang] = useState<'ar'|'en'>(typeof window !== 'undefined' && window.localStorage.getItem('lang') === 'en' ? 'en' : 'ar');
+  const t = translations[lang];
   const editor = useEditor({
     extensions: [StarterKit],
     content: aboutText,
@@ -45,10 +49,6 @@ const AboutPanel: React.FC = () => {
       }
     }
   });
-  const [loading, setLoading] = useState(false);
-  const [theme, setTheme] = useState(getInitialTheme());
-  const [lang, setLang] = useState<'ar'|'en'>(typeof window !== 'undefined' && window.localStorage.getItem('lang') === 'en' ? 'en' : 'ar');
-  const t = translations[lang];
 
   useEffect(() => {
     document.body.setAttribute('data-theme', theme);
