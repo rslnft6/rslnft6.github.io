@@ -235,25 +235,23 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // جلب صور الخلفية من فايرستور (collection: backgrounds)
+
+  // خلفيات ثابتة من الصور المحلية (bg2/bg3/bg4/bg5)
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'backgrounds'), snap => {
-      const imgs = snap.docs.map(d => d.data().url).filter(Boolean);
-      setBackgroundImages(imgs.length > 0 ? imgs.slice(0, 4) : [
-        '/images/bg1.png',
-        '/images/bg2.png',
-        '/images/bg10.png',
-        '/images/bg4.png',
-      ]);
-    });
-    return () => unsub();
+    const imgs = [
+      '/images/bg2.png',
+      '/images/bg3.png',
+      '/images/bg4.png',
+      '/images/bg5.png',
+    ];
+    setBackgroundImages(imgs);
   }, []);
 
   useEffect(() => {
     if (backgroundImages.length === 0) return;
     const interval = setInterval(() => {
       setBgIndex(i => (i + 1) % backgroundImages.length);
-    }, 7000);
+    }, 10000); // كل 10 ثواني
     return () => clearInterval(interval);
   }, [backgroundImages]);
 
