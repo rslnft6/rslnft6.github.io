@@ -76,7 +76,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
 
   return (
     <div
-      onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
       onDragOver={e => e.preventDefault()}
       style={{
@@ -97,7 +96,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
         transition: 'box-shadow 0.2s, border 0.2s',
         backdropFilter: 'blur(8px)',
       }}
-      title="اسحب الصور هنا أو اضغط للرفع"
+      title="اسحب الصور هنا أو اختر من جهازك أو التقط صورة بالكاميرا"
       onMouseOver={e => (e.currentTarget.style.boxShadow = '0 6px 32px 0 #00bcd455')}
       onMouseOut={e => (e.currentTarget.style.boxShadow = '0 4px 24px 0 rgba(0,188,212,0.08)')}
     >
@@ -131,18 +130,44 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
           >×</button>
         </div>
       ))}
-      {/* مربع رفع الصور */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple={multiple}
-        style={{ display: 'none' }}
-        onChange={handleInputChange}
-      />
-      <span style={{ color: uploading ? '#aaa' : '#00bcd4', fontSize: 16, marginRight: 10, minWidth: 120, fontWeight:'bold', letterSpacing:1 }}>
-        {uploading ? 'جاري رفع الصور...' : 'اسحب الصور هنا أو اضغط للرفع'}
-      </span>
+      {/* زر اختيار الصور من الجهاز أو الكاميرا */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: uploading ? 'not-allowed' : 'pointer', marginRight: 10 }}>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple={multiple}
+          capture="environment"
+          style={{ display: 'none' }}
+          onChange={handleInputChange}
+          disabled={uploading}
+        />
+        <span style={{ color: uploading ? '#aaa' : '#00bcd4', fontSize: 16, minWidth: 120, fontWeight:'bold', letterSpacing:1 }}>
+          {uploading ? 'جاري رفع الصور...' : 'اختر من جهازك أو التقط صورة بالكاميرا'}
+        </span>
+        <button
+          type="button"
+          style={{
+            background: '#00bcd4',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 16px',
+            fontWeight: 'bold',
+            fontSize: 15,
+            cursor: uploading ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 8px #00bcd433',
+            transition: 'background 0.2s',
+          }}
+          onClick={e => {
+            e.stopPropagation();
+            if (!uploading) inputRef.current?.click();
+          }}
+          disabled={uploading}
+        >
+          اختر صورة
+        </button>
+      </label>
     </div>
   );
 };
