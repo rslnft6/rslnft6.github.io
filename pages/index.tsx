@@ -280,23 +280,25 @@ export default function Home() {
   };
 
   return (
-    <div className="container" style={{
-      minHeight: '100vh',
-      borderRadius: 24,
-      boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
-      background: 'rgba(255,255,255,0.92)', // خلفية بيضاء شفافة عصرية
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-      backdropFilter: 'blur(24px)',
-      padding:0,
-      margin:0,
-      width:'100vw',
-      overflow:'hidden',
-      position:'relative',
-      backgroundColor: 'rgba(255,255,255,0.85)',
-    }}>
-      <Head>
+    <>
+      <AnimatedBackground />
+      <div className="container" style={{
+        minHeight: '100vh',
+        borderRadius: 24,
+        boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
+        background: 'rgba(255,255,255,0.92)', // خلفية بيضاء شفافة عصرية
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backdropFilter: 'blur(24px)',
+        padding:0,
+        margin:0,
+        width:'100vw',
+        overflow:'hidden',
+        position:'relative',
+        backgroundColor: 'rgba(255,255,255,0.85)',
+      }}>
+        <Head>
         <title>تطبيق عقارات عالمي</title>
         <meta name="description" content="تصفح أفضل الوحدات والمشروعات العقارية في الوطن العربي" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -596,5 +598,6 @@ export default function Home() {
         </main>
       </div>
     </div>
+    </>
   );
 }
