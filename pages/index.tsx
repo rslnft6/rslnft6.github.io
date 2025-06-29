@@ -208,10 +208,14 @@ export default function Home() {
   }
   const [marquee, setMarquee] = useState<MarqueeSettings>({ texts: ["فرحنا بوجودك معنا!"], speed: 30, color: "#ff9800", fontSize: 20 });
   useEffect(() => {
-    async function fetchMarquee() {
-      try {
-        const ref = fsDoc(db, 'settings', 'marquee');
-        const snap = await getDoc(ref);
+    // تحديث حي للشريط الكتابي من Firestore
+    // أولاً نحاول من settings/marquee، إذا لم يوجد نستخدم مجموعة marquee
+    const ref = fsDoc(db, 'settings', 'marquee');
+    let unsub: (() => void) | undefined;
+    try {
+      // جلب حي من مستند settings/marquee
+      // إذا لم يوجد المستند، fallback إلى مجموعة marquee
+      unsub = onSnapshot(ref, (snap) => {
         if (snap.exists()) {
           const d = snap.data();
           setMarquee({
@@ -222,9 +226,24 @@ export default function Home() {
             fontFamily: d.fontFamily || undefined
           });
         }
-      } catch {}
+      });
+    } catch {
+      // fallback: جلب من مجموعة marquee (للتوافق مع AdminPanel)
+      const unsub2 = onSnapshot(collection(db, 'marquee'), (snap) => {
+        if (snap.docs.length > 0) {
+          const d = snap.docs[0].data();
+          setMarquee({
+            texts: d.texts || ["فرحنا بوجودك معنا!"],
+            speed: d.speed || 30,
+            color: d.color || "#ff9800",
+            fontSize: d.fontSize || 20,
+            fontFamily: d.fontFamily || undefined
+          });
+        }
+      });
+      unsub = unsub2;
     }
-    fetchMarquee();
+    return () => { if (unsub) unsub(); };
   }, []);
 
   // جلب صور السلايدر من فايرستور (Realtime)
