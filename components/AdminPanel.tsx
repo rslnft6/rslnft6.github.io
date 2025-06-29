@@ -465,17 +465,7 @@ export default function AdminPanel() {
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <ImageUploader
                     images={unitForm.images || []}
-                    onAdd={async (files: File[]) => {
-                      setUploading(true);
-                      try {
-                        const urls = await Promise.all(files.map((file: File) => uploadImage(file, 'units')));
-                        setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
-                        setSnackbar({open:true, message:'تم رفع الصور بنجاح', severity:'success'});
-                      } catch (err) {
-                        setSnackbar({open:true, message:'فشل رفع الصور! تحقق من الاتصال أو الصلاحيات', severity:'error'});
-                      }
-                      setUploading(false);
-                    }}
+                    onAdd={(urls: string[]) => setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }))}
                     onRemove={(idx: number) => setUnitForm((f: Unit) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
                   />
                 </Box>
@@ -671,11 +661,8 @@ export default function AdminPanel() {
                 <Box sx={{ width: '100%' }}>
                   <ImageUploader
                     images={devForm.images || []}
-                    onAdd={async (files) => {
-                      const urls = await Promise.all(files.map(file => uploadImage(file, 'developers')));
-                      setDevForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
-                    }}
-                    onRemove={(idx) => setDevForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                    onAdd={(urls: string[]) => setDevForm((f: Developer) => ({ ...f, images: [...(f.images || []), ...urls] }))}
+                    onRemove={(idx: number) => setDevForm((f: Developer) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
                   />
                 </Box>
               </Box>
@@ -759,11 +746,8 @@ export default function AdminPanel() {
                 <Box sx={{ width: '100%' }}>
                   <ImageUploader
                     images={compoundForm.images || []}
-                    onAdd={async (files) => {
-                      const urls = await Promise.all(files.map(file => uploadImage(file, 'compounds')));
-                      setCompoundForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
-                    }}
-                    onRemove={(idx) => setCompoundForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                    onAdd={(urls: string[]) => setCompoundForm((f: Compound) => ({ ...f, images: [...(f.images || []), ...urls] }))}
+                    onRemove={(idx: number) => setCompoundForm((f: Compound) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
                   />
                 </Box>
               </Box>
