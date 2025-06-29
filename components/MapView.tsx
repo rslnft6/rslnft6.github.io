@@ -97,18 +97,25 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoun
       }
     });
 
-    // عرض الكمباوندات بلون مختلف
+    // عرض الكمباوندات بلون مختلف حسب الدولة
     compounds.forEach((c: any) => {
       if (c.city && c.country) {
         const unit = properties.find((p: any) => p.compound === c.name && p.lng && p.lat);
         if (!unit) return;
+        // تحديد اللون حسب الدولة
+        let borderColor = '#8e24aa'; // بنفسجي افتراضي
+        let boxShadow = '0 2px 16px #8e24aa55';
+        if (c.country === 'مصر') {
+          borderColor = '#43a047'; // أخضر
+          boxShadow = '0 2px 16px #43a04788';
+        }
         const el = document.createElement('div');
         el.style.width = '54px';
         el.style.height = '54px';
         el.style.borderRadius = '50%';
         el.style.overflow = 'hidden';
-        el.style.boxShadow = '0 2px 16px #ff9800';
-        el.style.border = '3px solid #ff9800';
+        el.style.boxShadow = boxShadow;
+        el.style.border = `3px solid ${borderColor}`;
         el.style.background = 'rgba(255,255,255,0.95)';
         el.style.cursor = 'pointer';
         el.title = c.name;
@@ -129,7 +136,7 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoun
           // جلب كل الوحدات داخل هذا الكمباوند
           const units = properties.filter((p: any) => p.compound === c.name);
           const html = `<div style='min-width:220px;max-width:280px;text-align:right'>
-            <div style='font-weight:bold;color:#ff9800;font-size:22px;margin-bottom:8px'>${c.name}</div>
+            <div style='font-weight:bold;color:${borderColor};font-size:22px;margin-bottom:8px'>${c.name}</div>
             <div style='color:#00bcd4;font-size:15px;margin-bottom:8px'>${c.city || ''} - ${c.country || ''}</div>
             <div style='font-size:15px;font-weight:bold;margin-bottom:8px'>الوحدات المتاحة:</div>
             <ul style='padding:0;margin:0;list-style:none;'>
