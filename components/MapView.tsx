@@ -12,14 +12,34 @@ interface MapViewProps {
 
 const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoundClick, onDeveloperClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
+
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  // لتخزين كل العلامات حتى يمكن حذفها عند التحديث
+  const markersRef = useRef<any[]>([]);
+
+  // إنشاء الخريطة مرة واحدة فقط
   useEffect(() => {
-    if (!mapContainer.current) return;
-    const map = new maplibregl.Map({
+    if (!mapContainer.current || mapRef.current) return;
+    mapRef.current = new maplibregl.Map({
       container: mapContainer.current,
       style: OSM_STYLE,
       center: [31.2357, 30.0444],
       zoom: 5
     });
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // تحديث العلامات عند تغيير البيانات
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    // حذف كل العلامات القديمة
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
     // عرض الوحدات
     properties.forEach((p: any) => {
       if (p.lng && p.lat) {
@@ -72,22 +92,24 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoun
             `)
             .addTo(map);
         };
-        new maplibregl.Marker(el).setLngLat([p.lng, p.lat]).addTo(map);
+        const marker = new maplibregl.Marker(el).setLngLat([p.lng, p.lat]).addTo(map);
+        markersRef.current.push(marker);
       }
     });
-    // عرض الكمباوندات
+
+    // عرض الكمباوندات بلون مختلف
     compounds.forEach((c: any) => {
       if (c.city && c.country) {
         const unit = properties.find((p: any) => p.compound === c.name && p.lng && p.lat);
         if (!unit) return;
         const el = document.createElement('div');
-        el.style.width = '48px';
-        el.style.height = '48px';
+        el.style.width = '54px';
+        el.style.height = '54px';
         el.style.borderRadius = '50%';
         el.style.overflow = 'hidden';
-        el.style.boxShadow = '0 2px 8px #2196f3';
-        el.style.border = '2.5px solid #2196f3';
-        el.style.background = '#fff';
+        el.style.boxShadow = '0 2px 16px #ff9800';
+        el.style.border = '3px solid #ff9800';
+        el.style.background = 'rgba(255,255,255,0.95)';
         el.style.cursor = 'pointer';
         el.title = c.name;
         const img = document.createElement('img');
@@ -107,7 +129,7 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoun
           // جلب كل الوحدات داخل هذا الكمباوند
           const units = properties.filter((p: any) => p.compound === c.name);
           const html = `<div style='min-width:220px;max-width:280px;text-align:right'>
-            <div style='font-weight:bold;color:#2196f3;font-size:20px;margin-bottom:8px'>${c.name}</div>
+            <div style='font-weight:bold;color:#ff9800;font-size:22px;margin-bottom:8px'>${c.name}</div>
             <div style='color:#00bcd4;font-size:15px;margin-bottom:8px'>${c.city || ''} - ${c.country || ''}</div>
             <div style='font-size:15px;font-weight:bold;margin-bottom:8px'>الوحدات المتاحة:</div>
             <ul style='padding:0;margin:0;list-style:none;'>
@@ -119,11 +141,12 @@ const MapView: React.FC<MapViewProps> = ({ properties, compounds = [], onCompoun
             .setHTML(html)
             .addTo(map);
         };
-        new maplibregl.Marker(el).setLngLat([unit.lng, unit.lat]).addTo(map);
+        const marker = new maplibregl.Marker(el).setLngLat([unit.lng, unit.lat]).addTo(map);
+        markersRef.current.push(marker);
       }
     });
-    return () => map.remove();
   }, [properties, compounds]);
+
   return <div ref={mapContainer} style={{width:'100%',height:400,borderRadius:16,margin:'32px 0',boxShadow:'0 2px 16px #e0e0e0'}} />;
 };
 

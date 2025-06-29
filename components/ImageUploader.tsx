@@ -1,8 +1,12 @@
+
 import React, { useRef, useState } from 'react';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
+// تأكد من تثبيت uuid: npm install uuid
 
 interface ImageUploaderProps {
   images: string[]; // الصور المحفوظة (روابط)
-  onAdd: (files: File[]) => void;
+  onAdd: (urls: string[]) => void;
   onRemove: (idx: number) => void;
   multiple?: boolean;
 }
@@ -16,44 +20,58 @@ interface TempImage {
 const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, multiple = true }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [tempImages, setTempImages] = useState<TempImage[]>([]);
+  const [uploading, setUploading] = useState(false);
 
-  // محاكاة progress وهمي للرفع
-  const fakeUpload = (files: File[]) => {
-    const newTemp = files.map(file => ({ file, url: URL.createObjectURL(file), progress: 0 }));
-    setTempImages(prev => [...prev, ...newTemp]);
-    newTemp.forEach((img, idx) => {
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += 20 + Math.random() * 30;
-        setTempImages(prev => prev.map(ti => ti === img ? { ...ti, progress: Math.min(100, prog) } : ti));
-        if (prog >= 100) {
-          clearInterval(interval);
-        }
-      }, 200);
-    });
-    // بعد انتهاء progress، أضف الصور فعليًا
-    setTimeout(() => {
-      onAdd(files);
-      setTempImages([]);
-    }, 1200);
+  // رفع فعلي مع progress
+  const realUpload = async (files: File[]) => {
+    setUploading(true);
+    const storage = getStorage();
+    const uploadedUrls: string[] = [];
+    for (const file of files) {
+      const id = uuidv4();
+      const storageRef = ref(storage, `uploads/${id}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      let tempImg = { file, url: URL.createObjectURL(file), progress: 0 };
+      setTempImages((prev: TempImage[]) => [...prev, tempImg]);
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const prog = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setTempImages((prev: TempImage[]) => prev.map((ti: TempImage) => ti.file === file ? { ...ti, progress: prog } : ti));
+          },
+          (error) => {
+            setTempImages((prev: TempImage[]) => prev.filter((ti: TempImage) => ti.file !== file));
+            reject(error);
+          },
+          async () => {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            uploadedUrls.push(url);
+            setTempImages((prev: TempImage[]) => prev.filter((ti: TempImage) => ti.file !== file));
+            resolve();
+          }
+        );
+      });
+    }
+    setUploading(false);
+    if (uploadedUrls.length > 0) onAdd(uploadedUrls);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      fakeUpload(Array.from(e.dataTransfer.files));
+      realUpload(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      fakeUpload(Array.from(e.target.files));
+      realUpload(Array.from(e.target.files));
       e.target.value = '';
     }
   };
 
   const handleRemoveTemp = (idx: number) => {
-    setTempImages(prev => prev.filter((_, i) => i !== idx));
+    setTempImages((prev: TempImage[]) => prev.filter((_, i: number) => i !== idx));
   };
 
   return (
@@ -96,7 +114,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
         </div>
       ))}
       {/* الصور المؤقتة (قبل الحفظ) */}
-      {tempImages.map((img, i) => (
+      {tempImages.map((img: TempImage, i: number) => (
         <div key={i} style={{ position: 'relative', display: 'inline-block', opacity: img.progress < 100 ? 0.7 : 1 }}>
           <img src={img.url} alt="preview" style={{ width: 62, height: 62, borderRadius: 12, objectFit: 'cover', border: '2.5px dashed #00bcd4', background:'#fff' }} />
           {img.progress < 100 && (
@@ -120,11 +138,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
         accept="image/*"
         multiple={multiple}
         style={{ display: 'none' }}
-        capture="environment"
         onChange={handleInputChange}
       />
-      <span style={{ color: '#00bcd4', fontSize: 16, marginRight: 10, minWidth: 120, fontWeight:'bold', letterSpacing:1 }}>
-        اسحب الصور هنا أو اضغط للرفع
+      <span style={{ color: uploading ? '#aaa' : '#00bcd4', fontSize: 16, marginRight: 10, minWidth: 120, fontWeight:'bold', letterSpacing:1 }}>
+        {uploading ? 'جاري رفع الصور...' : 'اسحب الصور هنا أو اضغط للرفع'}
       </span>
     </div>
   );
