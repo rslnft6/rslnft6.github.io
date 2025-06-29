@@ -101,7 +101,7 @@ function SmartSearch({ units, compounds, developers }: { units: any[], compounds
         if (v.type === 'compound') window.open(`/compounds/${v.id}`, '_blank');
         if (v.type === 'developer') window.open(`/developers/${v.id}`, '_blank');
       }}
-      renderInput={params => (
+      renderInput={(params: any) => (
         <TextField {...params} label="بحث سريع (عنوان، مطور، كمباوند)" variant="outlined" sx={{ bgcolor:'#fff', borderRadius:2, minWidth:260 }} />
       )}
       sx={{ minWidth: 260, maxWidth: 400, mx: 'auto', mb: 2 }}
@@ -135,7 +135,7 @@ function UnitsCompareDialog({ open, onClose, units }: { open: boolean, onClose: 
       <DialogTitle sx={{fontWeight:'bold', color:'#00bcd4'}}>مقارنة الوحدات العقارية</DialogTitle>
       <DialogContent sx={{overflowX:'auto'}}>
         <Box sx={{display:'flex',gap:2,mb:2}}>
-          {units.map((u,i)=>(
+          {units.map((u: any,i: number)=>(
             <Box key={i} sx={{textAlign:'center'}}>
               <img src={u.images?.[0]||'/images/bg1.png'} alt="img" style={{width:120,height:90,borderRadius:8,objectFit:'cover',border:'2px solid #00bcd4'}} />
               <Typography sx={{fontWeight:'bold',color:'#00bcd4',mt:1}}>{u.title}</Typography>
@@ -146,14 +146,14 @@ function UnitsCompareDialog({ open, onClose, units }: { open: boolean, onClose: 
           <thead>
             <tr>
               <th style={{color:'#00bcd4',fontWeight:'bold',padding:8,textAlign:'right'}}>الميزة</th>
-              {units.map((u,i)=>(<th key={i} style={{color:'#fff',fontWeight:'bold',padding:8}}>{u.title}</th>))}
+              {units.map((u: any,i: number)=>(<th key={i} style={{color:'#fff',fontWeight:'bold',padding:8}}>{u.title}</th>))}
             </tr>
           </thead>
           <tbody>
             {fields.map(f=>(
               <tr key={f.key} style={{borderBottom:'1px solid #333'}}>
                 <td style={{color:'#00bcd4',fontWeight:'bold',padding:8}}>{f.label}</td>
-                {units.map((u,i)=>(<td key={i} style={{color:'#fff',padding:8}}>{typeof u[f.key]==='boolean' ? (u[f.key]?'✔️':'❌') : u[f.key]}</td>))}
+                {units.map((u: any,i: number)=>(<td key={i} style={{color:'#fff',padding:8}}>{typeof u[f.key]==='boolean' ? (u[f.key]?'✔️':'❌') : u[f.key]}</td>))}
               </tr>
             ))}
           </tbody>
@@ -211,15 +211,15 @@ export default function AdminPanel() {
 
   // جلب البيانات من فايرستور
   useEffect(() => {
-    const unsubUnits = onSnapshot(collection(db, 'units'), snap => setUnits(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Unit)));
-    const unsubDevs = onSnapshot(collection(db, 'developers'), snap => setDevelopers(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Developer));
-    const unsubCompounds = onSnapshot(collection(db, 'compounds'), snap => setCompounds(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Compound));
-    const unsubBackgrounds = onSnapshot(collection(db, 'backgrounds'), snap => setBackgrounds(snap.docs.map(d => d.data().url as string)));
-    const unsubSlider = onSnapshot(collection(db, 'slider'), snap => setSlider(snap.docs.map(d => d.data().url as string)));
-    const unsubMarquee = onSnapshot(collection(db, 'marquee'), snap => {
+    const unsubUnits = onSnapshot(collection(db, 'units'), (snap: any) => setUnits(snap.docs.map((d: any) => ({ id: d.id, ...d.data() }) as Unit)));
+    const unsubDevs = onSnapshot(collection(db, 'developers'), (snap: any) => setDevelopers(snap.docs.map((d: any) => ({ id: d.id, ...d.data() }) as Developer)));
+    const unsubCompounds = onSnapshot(collection(db, 'compounds'), (snap: any) => setCompounds(snap.docs.map((d: any) => ({ id: d.id, ...d.data() }) as Compound)));
+    const unsubBackgrounds = onSnapshot(collection(db, 'backgrounds'), (snap: any) => setBackgrounds(snap.docs.map((d: any) => d.data().url as string)));
+    const unsubSlider = onSnapshot(collection(db, 'slider'), (snap: any) => setSlider(snap.docs.map((d: any) => d.data().url as string)));
+    const unsubMarquee = onSnapshot(collection(db, 'marquee'), (snap: any) => {
       if (snap.docs.length > 0) setMarquee(snap.docs[0].data() as Marquee);
     });
-    const unsubEmployees = onSnapshot(collection(db, 'employees'), snap => setEmployees(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubEmployees = onSnapshot(collection(db, 'employees'), (snap: any) => setEmployees(snap.docs.map((d: any) => ({ id: d.id, ...d.data() }))));
     return () => {
       unsubUnits();
       unsubDevs();
@@ -327,8 +327,8 @@ export default function AdminPanel() {
           </Box>
           <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingUnit(null); setUnitForm({ title: '', country: '', compound: '', developer: '', area: '', minPrice: '', maxPrice: '', rooms: '', baths: '', kitchen: '', floors: '', pool: false, garden: false, guardRoom: false, location: '', images: [], panorama: [], model3d: '', vr: '' }); setUnitDialog(true); }}>إضافة وحدة</Button>
           <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
-            {units.map(unit => {
-              const selected = compareUnits.some(u => u.id === unit.id);
+            {units.map((unit: Unit) => {
+              const selected = compareUnits.some((u: Unit) => u.id === unit.id);
               return (
                 <Box key={unit.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
                   <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
@@ -342,15 +342,15 @@ export default function AdminPanel() {
                       <IconButton onClick={() => { setEditingUnit(unit); setUnitForm(unit); setUnitDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                       <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الوحدة؟`, onConfirm: async () => {
                         await deleteDoc(doc(db, 'units', unit.id!));
-                        setUnits(units.filter(u => u.id !== unit.id));
+                        setUnits(units.filter((u: Unit) => u.id !== unit.id));
                         setSnackbar({open: true, message: 'تم حذف الوحدة بنجاح', severity: 'success'});
                       }})}><Delete /></IconButton>
                       <Button size="small" variant={selected ? "contained" : "outlined"} sx={{ml:1,bgcolor:selected?'#00bcd4':'#23263a',color:selected?'#181c2a':'#00bcd4',fontWeight:'bold'}} onClick={event => {
                         event.stopPropagation();
                         if(selected) {
-                          setCompareUnits(compareUnits.filter(u => u.id !== unit.id));
+                          setCompareUnits(compareUnits.filter((u: Unit) => u.id !== unit.id));
                         } else {
-                          setCompareUnits(prev => prev.length >= 4 ? [...prev.slice(1), unit] : [...prev, unit]);
+                          setCompareUnits((prev: Unit[]) => prev.length >= 4 ? [...prev.slice(1), unit] : [...prev, unit]);
                         }
                       }}>{selected ? 'إزالة من المقارنة' : 'إضافة للمقارنة'}</Button>
                     </CardActions>
@@ -457,32 +457,40 @@ export default function AdminPanel() {
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <ImageUploader
                     images={unitForm.images || []}
-                    onAdd={async (files) => {
+                    onAdd={async (files: File[]) => {
                       setUploading(true);
-                      const urls = await Promise.all(files.map(file => uploadImage(file, 'units')));
-                      setUnitForm(f => ({ ...f, images: [...(f.images || []), ...urls] }));
+                      try {
+                        const urls = await Promise.all(files.map((file: File) => uploadImage(file, 'units')));
+                        setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
+                        setSnackbar({open:true, message:'تم رفع الصور بنجاح', severity:'success'});
+                      } catch (err) {
+                        setSnackbar({open:true, message:'فشل رفع الصور! تحقق من الاتصال أو الصلاحيات', severity:'error'});
+                      }
                       setUploading(false);
-                      setSnackbar({open:true, message:'تم رفع الصور بنجاح', severity:'success'});
                     }}
-                    onRemove={(idx) => setUnitForm(f => ({ ...f, images: (f.images || []).filter((_, i) => i !== idx) }))}
+                    onRemove={(idx: number) => setUnitForm((f: Unit) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
                   />
                 </Box>
                 {/* صور بانوراما */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
                   <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
                     {uploading ? <CircularProgress size={22} color="inherit" /> : 'رفع صور بانوراما'}
-                    <input type="file" hidden multiple accept="image/*" onChange={async e => {
+                    <input type="file" hidden multiple accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                       if (!e.target.files) return;
                       setUploading(true);
-                      const files = Array.from(e.target.files);
-                      const urls = await Promise.all(files.map(file => uploadImage(file, 'units/panorama')));
-                      setUnitForm(f => ({ ...f, panorama: [...(f.panorama || []), ...urls] }));
+                      const files = Array.from(e.target.files) as File[];
+                      try {
+                        const urls = await Promise.all(files.map((file: File) => uploadImage(file, 'units/panorama')));
+                        setUnitForm((f: Unit) => ({ ...f, panorama: [...(f.panorama || []), ...urls] }));
+                        setSnackbar({open:true, message:'تم رفع صور البانوراما', severity:'success'});
+                      } catch (err) {
+                        setSnackbar({open:true, message:'فشل رفع صور البانوراما!', severity:'error'});
+                      }
                       setUploading(false);
-                      setSnackbar({open:true, message:'تم رفع صور البانوراما', severity:'success'});
                     }} />
                   </Button>
                   <Box sx={{display:'flex',flexWrap:'wrap',gap:1,mt:1}}>
-                    {unitForm.panorama?.map((img,i)=>(<img key={i} src={img} alt="pano" style={{width:48,height:48,borderRadius:6,objectFit:'cover',border:'2px solid #00bcd4'}} />))}
+                    {unitForm.panorama?.map((img: string, i: number)=>(<img key={i} src={img} alt="pano" style={{width:48,height:48,borderRadius:6,objectFit:'cover',border:'2px solid #00bcd4'}} />))}
                   </Box>
                 </Box>
                 {/* نموذج 3D */}
@@ -544,7 +552,7 @@ export default function AdminPanel() {
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الموظفين</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
           <Grid container spacing={2} mt={1}>
-            {employees.map(emp => (
+            {employees.map((emp: any) => (
               <Box key={emp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
                 <Card sx={{ width: '100%' }}>
                   <CardContent>
@@ -555,7 +563,7 @@ export default function AdminPanel() {
                     <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الموظف؟`, onConfirm: async () => {
                       await deleteDoc(doc(db, 'employees', emp.id!));
-                      setEmployees(employees.filter(e => e.id !== emp.id));
+                      setEmployees(employees.filter((e: any) => e.id !== emp.id));
                       setSnackbar({open: true, message: 'تم حذف الموظف بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
@@ -605,7 +613,7 @@ export default function AdminPanel() {
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة المطورين العقاريين</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
           <Grid container spacing={2} mt={1}>
-            {developers.map(dev => (
+            {developers.map((dev: Developer) => (
               <Box key={dev.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
                 <Card sx={{ width: '100%' }}>
                   <CardMedia image={dev.images?.[0] || '/images/bg1.png'} title={dev.name} sx={{ height: 140 }} />
@@ -618,7 +626,7 @@ export default function AdminPanel() {
                     <IconButton onClick={() => { setEditingDev(dev); setDevForm(dev); setDevDialog(true); }}><Edit /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف المطور؟`, onConfirm: async () => {
                       await deleteDoc(doc(db, 'developers', dev.id!));
-                      setDevelopers(developers.filter(d => d.id !== dev.id));
+                      setDevelopers(developers.filter((d: Developer) => d.id !== dev.id));
                       setSnackbar({open: true, message: 'تم حذف المطور بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
@@ -678,7 +686,7 @@ export default function AdminPanel() {
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الكمباوندات</Typography>
           <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
           <Grid container spacing={2} mt={1}>
-            {compounds.map(comp => (
+            {compounds.map((comp: Compound) => (
               <Box key={comp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
                 <Card sx={{ width: '100%' }}>
                   <CardMedia image={comp.images?.[0] || '/images/bg1.png'} title={comp.name} sx={{ height: 140 }} />
@@ -690,7 +698,7 @@ export default function AdminPanel() {
                     <IconButton onClick={() => { setEditingCompound(comp); setCompoundForm(comp); setCompoundDialog(true); }}><Edit /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الكمباوند؟`, onConfirm: async () => {
                       await deleteDoc(doc(db, 'compounds', comp.id!));
-                      setCompounds(compounds.filter(c => c.id !== comp.id));
+                      setCompounds(compounds.filter((c: Compound) => c.id !== comp.id));
                       setSnackbar({open: true, message: 'تم حذف الكمباوند بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>

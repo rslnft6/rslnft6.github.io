@@ -519,6 +519,13 @@ export default function Home() {
                     <button title="مفضلة" style={{background:'#fff',border:'1.5px solid #ff9800',borderRadius:8,padding:4,cursor:'pointer'}}>⭐</button>
                     <button title="مشاركة" style={{background:'#fff',border:'1.5px solid #2196f3',borderRadius:8,padding:4,cursor:'pointer'}}>🔗</button>
                   </div>
+                  {/* زر عرض VR وصور بانوراما إذا متاح */}
+                  {(property.vr || (property.panorama && property.panorama.length > 0)) && (
+                    <div style={{position:'absolute',bottom:8,right:8,display:'flex',gap:8}}>
+                      {property.vr && <button title="عرض نموذج VR" style={{background:'#181c2a',color:'#fff',border:'1.5px solid #00bcd4',borderRadius:8,padding:4,cursor:'pointer',fontWeight:'bold'}} onClick={e=>{e.stopPropagation();setShowPano(property.vr);}}>VR</button>}
+                      {property.panorama && property.panorama.length > 0 && <button title="عرض صور بانوراما" style={{background:'#181c2a',color:'#fff',border:'1.5px solid #ff9800',borderRadius:8,padding:4,cursor:'pointer',fontWeight:'bold'}} onClick={e=>{e.stopPropagation();setShowPano(property.panorama[0]);}}>بانوراما</button>}
+                    </div>
+                  )}
                 </div>
               </SwiperSlide>
             ))}
@@ -555,6 +562,20 @@ export default function Home() {
             </DialogActions>
           </Dialog>
           </Swiper>
+          {/* شبكة الكمباوندات */}
+          <div style={{width:'100%',maxWidth:1400,margin:'32px auto 24px auto',borderRadius:16,overflow:'hidden',boxShadow:'0 2px 16px #e0e0e0',background:'#fff',padding:'24px 0'}}>
+            <h2 style={{textAlign:'center',color:'#00bcd4',fontWeight:'bold',fontSize:28,marginBottom:16}}>أشهر الكمباوندات</h2>
+            <div style={{display:'flex',flexWrap:'wrap',gap:24,justifyContent:'center'}}>
+              {compounds.map(c => (
+                <div key={c.id} style={{width:180,cursor:'pointer',background:'#f7f7f7',borderRadius:16,boxShadow:'0 2px 8px #e0e0e0',padding:16,display:'flex',flexDirection:'column',alignItems:'center',transition:'0.2s',border:'2px solid #00bcd4'}} onClick={()=>{setCompound(c.name);setPendingFilters(f=>({...f,compound:c.name}));window.scrollTo({top:500,behavior:'smooth'});}}>
+                  <img src={c.logo||'/images/bg1.png'} alt={c.name} style={{width:80,height:80,objectFit:'contain',borderRadius:12,marginBottom:8,background:'#fff',border:'1.5px solid #eee'}} />
+                  <div style={{fontWeight:'bold',color:'#00bcd4',fontSize:18,marginBottom:4}}>{c.name}</div>
+                  <div style={{color:'#888',fontSize:15}}>{c.developer}</div>
+                  <div style={{color:'#ff9800',fontSize:14}}>{c.city}</div>
+                </div>
+              ))}
+            </div>
+          </div>
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
             {!chatOpen && (
