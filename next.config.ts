@@ -1,6 +1,10 @@
-import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+
+
+/**
+ * @type {import('next').NextConfig}
+ */
+const nextConfig = {
   reactStrictMode: true,
   output: "export",
   // basePath و assetPrefix يجب أن يكونا فارغين للنشر على الجذر
@@ -10,4 +14,3 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = nextConfig;
-export default nextConfig;
