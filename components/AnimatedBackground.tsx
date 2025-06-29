@@ -24,8 +24,9 @@ export default function AnimatedBackground() {
     return () => clearInterval(interval);
   }, [backgrounds]);
 
-  if (backgrounds.length === 0) return null;
+  // إذا لم توجد خلفيات في فايرستور، استخدم صورة افتراضية
+  const bgList = backgrounds.length > 0 ? backgrounds : ['/images/bg1.png'];
   return (
-    <div className={styles.animatedBg} style={{ backgroundImage: `url(${backgrounds[index]})` }} />
+    <div className={styles.animatedBg} style={{ backgroundImage: `url(${bgList[index % bgList.length]})` }} />
   );
 }
