@@ -33,6 +33,7 @@ import { defaultContacts, ContactLinks } from '../data/contacts';
 import { doc as fsDoc, getDoc } from 'firebase/firestore';
 import { FaWhatsapp, FaPhone, FaFacebook, FaSnapchatGhost, FaTwitter, FaInstagram, FaTelegram, FaDiscord, FaEnvelope } from 'react-icons/fa';
 import { Menu, MenuItem } from '@mui/material';
+import CompoundsSlider from '../components/CompoundsSlider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -283,7 +284,7 @@ export default function Home() {
       minHeight: '100vh',
       borderRadius: 24,
       boxShadow: '0 2px 32px rgba(0,0,0,0.08)',
-      background: backgroundImages.length > 0 ? `linear-gradient(0deg,rgba(255,255,255,0.97),rgba(255,255,255,0.97)), url(${backgroundImages[bgIndex]})` : 'rgba(255,255,255,0.97)',
+      background: 'rgba(255,255,255,0.92)', // خلفية بيضاء شفافة عصرية
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
@@ -562,8 +563,8 @@ export default function Home() {
             </DialogActions>
           </Dialog>
           </Swiper>
-          {/* شبكة الكمباوندات */}
-          <div style={{width:'100%',maxWidth:1400,margin:'32px auto 24px auto',borderRadius:16,overflow:'hidden',boxShadow:'0 2px 16px #e0e0e0',background:'#fff',padding:'24px 0'}}>
+          {/* شبكة الكمباوندات القديمة */}
+          {/* <div style={{width:'100%',maxWidth:1400,margin:'32px auto 24px auto',borderRadius:16,overflow:'hidden',boxShadow:'0 2px 16px #e0e0e0',background:'#fff',padding:'24px 0'}}>
             <h2 style={{textAlign:'center',color:'#00bcd4',fontWeight:'bold',fontSize:28,marginBottom:16}}>أشهر الكمباوندات</h2>
             <div style={{display:'flex',flexWrap:'wrap',gap:24,justifyContent:'center'}}>
               {compounds.map(c => (
@@ -575,7 +576,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
+          {/* سلايدر كمباوندات عصري */}
+          <CompoundsSlider compounds={compounds} onCompoundClick={c=>{setCompound(c.name);setPendingFilters(f=>({...f,compound:c.name}));window.scrollTo({top:500,behavior:'smooth'});}} />
           {/* الدردشة الذكية العائمة */}
           <div style={{position:'fixed',bottom:24,right:24,zIndex:9999}}>
             {!chatOpen && (

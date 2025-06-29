@@ -44,6 +44,9 @@ export type Developer = {
   country: string;
   achievements: string;
   about: string;
+  facilities?: string[]; // مرافق
+  nearBy?: string[]; // مرافق قريبة
+  icons?: string[]; // روابط أيقونات
   images: string[];
 };
 
@@ -55,6 +58,11 @@ export type Compound = {
   location: string;
   lat?: number;
   lng?: number;
+  about?: string; // نبذة
+  achievements?: string; // إنجازات
+  facilities?: string[]; // مرافق
+  nearBy?: string[]; // مرافق قريبة
+  icons?: string[]; // روابط أيقونات
   images: string[];
 };
 
@@ -188,12 +196,12 @@ export default function AdminPanel() {
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [devDialog, setDevDialog] = useState(false);
   const [editingDev, setEditingDev] = useState<Developer | null>(null);
-  const [devForm, setDevForm] = useState<Developer>({ name: '', country: '', achievements: '', about: '', images: [] });
+  const [devForm, setDevForm] = useState<Developer>({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] });
   // كمباوندات
   const [compounds, setCompounds] = useState<Compound[]>([]);
   const [compoundDialog, setCompoundDialog] = useState(false);
   const [editingCompound, setEditingCompound] = useState<Compound | null>(null);
-  const [compoundForm, setCompoundForm] = useState<Compound>({ name: '', country: '', developer: '', location: '', lat: 30.0444, lng: 31.2357, images: [] });
+  const [compoundForm, setCompoundForm] = useState<Compound>({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] });
   // الخلفيات
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [bgDialog, setBgDialog] = useState(false);
@@ -611,7 +619,7 @@ export default function AdminPanel() {
       {/* تبويب المطورين */}
       {tab === 2 && (
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة المطورين العقاريين</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
+          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
           <Grid container spacing={2} mt={1}>
             {developers.map((dev: Developer) => (
               <Box key={dev.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
@@ -652,6 +660,15 @@ export default function AdminPanel() {
                   <TextField label="نبذة عن المطور" fullWidth multiline rows={3} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} />
                 </Box>
                 <Box sx={{ width: '100%' }}>
+                  <TextField label="المرافق (افصل بينها بفاصلة)" fullWidth value={devForm.facilities?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, facilities: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="مرافق قريبة (افصل بينها بفاصلة)" fullWidth value={devForm.nearBy?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, nearBy: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="روابط أيقونات (افصل بينها بفاصلة)" fullWidth value={devForm.icons?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, icons: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
                   <ImageUploader
                     images={devForm.images || []}
                     onAdd={async (files) => {
@@ -684,7 +701,7 @@ export default function AdminPanel() {
       {/* تبويب الكمباوندات */}
       {tab === 3 && (
         <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الكمباوندات</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
+          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
           <Grid container spacing={2} mt={1}>
             {compounds.map((comp: Compound) => (
               <Box key={comp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
@@ -723,6 +740,21 @@ export default function AdminPanel() {
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <TextField label="العنوان أو وصف الموقع (اختياري)" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} />
                   <MapPicker lat={compoundForm.lat || 30.0444} lng={compoundForm.lng || 31.2357} onChange={(lat, lng) => setCompoundForm(f => ({ ...f, lat, lng }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={2} value={compoundForm.about||''} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="أهم الإنجازات" fullWidth value={compoundForm.achievements||''} onChange={e => setCompoundForm(f => ({ ...f, achievements: e.target.value }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="المرافق (افصل بينها بفاصلة)" fullWidth value={compoundForm.facilities?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, facilities: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="مرافق قريبة (افصل بينها بفاصلة)" fullWidth value={compoundForm.nearBy?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, nearBy: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="روابط أيقونات (افصل بينها بفاصلة)" fullWidth value={compoundForm.icons?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, icons: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
                 </Box>
                 <Box sx={{ width: '100%' }}>
                   <ImageUploader

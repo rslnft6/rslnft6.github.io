@@ -1,20 +1,59 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface ImageUploaderProps {
-  images: string[];
+  images: string[]; // الصور المحفوظة (روابط)
   onAdd: (files: File[]) => void;
   onRemove: (idx: number) => void;
   multiple?: boolean;
 }
 
+interface TempImage {
+  file: File;
+  url: string;
+  progress: number;
+}
+
 const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, multiple = true }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [tempImages, setTempImages] = useState<TempImage[]>([]);
+
+  // محاكاة progress وهمي للرفع
+  const fakeUpload = (files: File[]) => {
+    const newTemp = files.map(file => ({ file, url: URL.createObjectURL(file), progress: 0 }));
+    setTempImages(prev => [...prev, ...newTemp]);
+    newTemp.forEach((img, idx) => {
+      let prog = 0;
+      const interval = setInterval(() => {
+        prog += 20 + Math.random() * 30;
+        setTempImages(prev => prev.map(ti => ti === img ? { ...ti, progress: Math.min(100, prog) } : ti));
+        if (prog >= 100) {
+          clearInterval(interval);
+        }
+      }, 200);
+    });
+    // بعد انتهاء progress، أضف الصور فعليًا
+    setTimeout(() => {
+      onAdd(files);
+      setTempImages([]);
+    }, 1200);
+  };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onAdd(Array.from(e.dataTransfer.files));
+      fakeUpload(Array.from(e.dataTransfer.files));
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      fakeUpload(Array.from(e.target.files));
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveTemp = (idx: number) => {
+    setTempImages(prev => prev.filter((_, i) => i !== idx));
   };
 
   return (
@@ -23,43 +62,70 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
       onDrop={handleDrop}
       onDragOver={e => e.preventDefault()}
       style={{
-        border: '2px dashed #00bcd4',
-        borderRadius: 10,
-        padding: 16,
-        minHeight: 80,
-        background: '#f9f9f9',
+        border: '2.5px solid #00bcd4',
+        borderRadius: 18,
+        padding: 18,
+        minHeight: 90,
+        background: 'rgba(255,255,255,0.85)',
+        boxShadow: '0 4px 24px 0 rgba(0,188,212,0.08)',
         cursor: 'pointer',
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 12,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        marginBottom: 8,
+        marginBottom: 10,
+        position: 'relative',
+        transition: 'box-shadow 0.2s, border 0.2s',
+        backdropFilter: 'blur(8px)',
       }}
       title="اسحب الصور هنا أو اضغط للرفع"
+      onMouseOver={e => (e.currentTarget.style.boxShadow = '0 6px 32px 0 #00bcd455')}
+      onMouseOut={e => (e.currentTarget.style.boxShadow = '0 4px 24px 0 rgba(0,188,212,0.08)')}
     >
+      {/* الصور المحفوظة */}
       {images.map((img, i) => (
         <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
-          <img src={img} alt="img" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', border: '2px solid #00bcd4' }} />
+          <img src={img} alt="img" style={{ width: 62, height: 62, borderRadius: 12, objectFit: 'cover', border: '2.5px solid #00bcd4', boxShadow: '0 2px 8px #00bcd433', background:'#fff' }} />
           <button
             type="button"
             onClick={e => { e.stopPropagation(); onRemove(i); }}
-            style={{ position: 'absolute', top: -8, right: -8, background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, fontWeight: 'bold', cursor: 'pointer', fontSize: 14 }}
+            style={{ position: 'absolute', top: -10, right: -10, background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, fontWeight: 'bold', cursor: 'pointer', fontSize: 16, boxShadow:'0 2px 8px #f4433622' }}
             title="حذف الصورة"
           >×</button>
         </div>
       ))}
+      {/* الصور المؤقتة (قبل الحفظ) */}
+      {tempImages.map((img, i) => (
+        <div key={i} style={{ position: 'relative', display: 'inline-block', opacity: img.progress < 100 ? 0.7 : 1 }}>
+          <img src={img.url} alt="preview" style={{ width: 62, height: 62, borderRadius: 12, objectFit: 'cover', border: '2.5px dashed #00bcd4', background:'#fff' }} />
+          {img.progress < 100 && (
+            <div style={{ position: 'absolute', top: 0, left: 0, width: 62, height: 62, background: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: '#00bcd4', borderRadius: 12, fontWeight:'bold' }}>
+              {Math.round(img.progress)}%
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); handleRemoveTemp(i); }}
+            style={{ position: 'absolute', top: -10, right: -10, background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 26, height: 26, fontWeight: 'bold', cursor: 'pointer', fontSize: 16, boxShadow:'0 2px 8px #f4433622' }}
+            title="حذف الصورة"
+            disabled={img.progress < 100}
+          >×</button>
+        </div>
+      ))}
+      {/* مربع رفع الصور */}
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         multiple={multiple}
         style={{ display: 'none' }}
-        onChange={e => {
-          if (e.target.files) onAdd(Array.from(e.target.files));
-        }}
+        capture="environment"
+        onChange={handleInputChange}
       />
-      <span style={{ color: '#888', fontSize: 15, marginRight: 8 }}>اسحب الصور هنا أو اضغط للرفع</span>
+      <span style={{ color: '#00bcd4', fontSize: 16, marginRight: 10, minWidth: 120, fontWeight:'bold', letterSpacing:1 }}>
+        اسحب الصور هنا أو اضغط للرفع
+      </span>
     </div>
   );
 };

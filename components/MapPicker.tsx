@@ -12,16 +12,19 @@ interface MapPickerProps {
 
 const MapPicker: React.FC<MapPickerProps> = ({ lat, lng, onChange, height = 320 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
 
+  // تهيئة الخريطة مرة واحدة فقط
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: OSM_STYLE,
       center: [lng, lat],
       zoom: 12,
     });
+    mapRef.current = map;
     const marker = new maplibregl.Marker({ draggable: true })
       .setLngLat([lng, lat])
       .addTo(map);
@@ -34,12 +37,20 @@ const MapPicker: React.FC<MapPickerProps> = ({ lat, lng, onChange, height = 320 
       marker.setLngLat(e.lngLat);
       onChange(e.lngLat.lat, e.lngLat.lng);
     });
-    return () => map.remove();
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
   }, []);
 
+  // تحديث marker فقط عند تغيير الإحداثيات
   useEffect(() => {
     if (markerRef.current) {
       markerRef.current.setLngLat([lng, lat]);
+    }
+    if (mapRef.current) {
+      mapRef.current.setCenter([lng, lat]);
     }
   }, [lat, lng]);
 
