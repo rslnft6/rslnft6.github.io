@@ -529,18 +529,22 @@ export default function AdminPanel() {
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setUnitDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
-              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} onClick={async () => {
-                if (editingUnit) {
-                  await updateDoc(doc(db, 'units', editingUnit.id!), unitForm);
-                  setUnits(units.map(u => u.id === editingUnit.id ? { ...u, ...unitForm } : u));
-                  setSnackbar({open: true, message: 'تم تحديث الوحدة بنجاح', severity: 'success'});
-                } else {
-                  const docRef = await addDoc(collection(db, 'units'), unitForm);
-                  setUnits([...units, { ...unitForm, id: docRef.id }]);
-                  setSnackbar({open: true, message: 'تم إضافة الوحدة بنجاح', severity: 'success'});
-                }
-                setUnitDialog(false);
-              }}>{editingUnit ? 'تحديث' : 'إضافة'}</Button>
+              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
+                disabled={uploading}
+                onClick={async () => {
+                  if (uploading) return;
+                  if (editingUnit) {
+                    await updateDoc(doc(db, 'units', editingUnit.id!), unitForm);
+                    setUnits(units.map(u => u.id === editingUnit.id ? { ...u, ...unitForm } : u));
+                    setSnackbar({open: true, message: 'تم تحديث الوحدة بنجاح', severity: 'success'});
+                  } else {
+                    const docRef = await addDoc(collection(db, 'units'), unitForm);
+                    setUnits([...units, { ...unitForm, id: docRef.id }]);
+                    setSnackbar({open: true, message: 'تم إضافة الوحدة بنجاح', severity: 'success'});
+                  }
+                  setUnitDialog(false);
+                }}
+              >{uploading ? 'انتظر انتهاء رفع الصور...' : (editingUnit ? 'تحديث' : 'إضافة')}</Button>
             </DialogActions>
           </Dialog>
         </Box>
