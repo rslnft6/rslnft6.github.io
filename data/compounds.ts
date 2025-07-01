@@ -1,0 +1,27 @@
+// قائمة الكمباوندات (أمثلة واقعية)
+export const compounds = [
+  { id: 1, name: 'بالم هيلز أكتوبر', logo: '/images/palmhills.png', developerId: 2, developer: 'بالم هيلز', city: '6 أكتوبر', country: 'مصر' },
+  { id: 2, name: 'ماونتن فيو آي سيتي', logo: '/images/mountainview.png', developerId: 4, developer: 'ماونتن فيو', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 3, name: 'هايد بارك', logo: '/images/hydepark.png', developerId: 5, developer: 'هايد بارك', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 4, name: 'سوديك ويست', logo: '/images/sodic.png', developerId: 1, developer: 'سوديك', city: '6 أكتوبر', country: 'مصر' },
+  { id: 5, name: 'ميفيدا إعمار', logo: '/images/emaarmisr.png', developerId: 3, developer: 'إعمار مصر', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 6, name: 'O West', logo: '/images/hasanallam.png', developerId: 11, developer: 'Orascom', city: '6 أكتوبر', country: 'مصر' },
+  { id: 7, name: 'سيتي جيت', logo: '/images/misritalia.png', developerId: 13, developer: 'مصر إيطاليا', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 8, name: 'العاصمة الإدارية الجديدة', logo: '/images/globe.svg', developerId: 9, developer: 'العاصمة الإدارية', city: 'العاصمة الإدارية', country: 'مصر' },
+  { id: 9, name: 'مراسي', logo: '/images/emaarmisr.png', developerId: 3, developer: 'إعمار مصر', city: 'الساحل الشمالي', country: 'مصر' },
+  { id: 10, name: 'ذا جيت', logo: '/images/globe.svg', developerId: 10, developer: 'City Edge', city: 'العلمين الجديدة', country: 'مصر' },
+  { id: 11, name: 'أبراج زيد', logo: '/images/ora.png', developerId: 8, developer: 'أورا ديفلوبرز', city: 'الشيخ زايد', country: 'مصر' },
+  { id: 12, name: 'مدينتي', logo: '/images/madinaty.png', developerId: 15, developer: 'مجموعة طلعت مصطفى', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 13, name: 'الرحاب', logo: '/images/rehab.png', developerId: 15, developer: 'مجموعة طلعت مصطفى', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 14, name: 'جيفيرا', logo: '/images/globe.svg', developerId: 7, developer: 'حسن علام', city: 'الساحل الشمالي', country: 'مصر' },
+  { id: 15, name: 'أبراج العلمين', logo: '/images/globe.svg', developerId: 10, developer: 'City Edge', city: 'العلمين الجديدة', country: 'مصر' },
+  { id: 21, name: 'مدينتي', logo: '/images/madinaty.png', developerId: 15, developer: 'مجموعة طلعت مصطفى', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 22, name: 'الرحاب', logo: '/images/rehab.png', developerId: 15, developer: 'مجموعة طلعت مصطفى', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 23, name: 'هايد بارك', logo: '/images/hydepark.png', developerId: 5, developer: 'هايد بارك', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 24, name: 'ماونتن فيو أي سيتي', logo: '/images/mountainview.png', developerId: 4, developer: 'ماونتن فيو', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 25, name: 'بالم هيلز', logo: '/images/palmhills.png', developerId: 2, developer: 'بالم هيلز', city: '6 أكتوبر', country: 'مصر' },
+  { id: 26, name: 'سوديك ويست', logo: '/images/sodic.png', developerId: 1, developer: 'سوديك', city: '6 أكتوبر', country: 'مصر' },
+  { id: 27, name: 'ميفيدا', logo: '/images/emaarmisr.png', developerId: 3, developer: 'إعمار مصر', city: 'القاهرة الجديدة', country: 'مصر' },
+  { id: 28, name: 'أورا', logo: '/images/ora.png', developerId: 8, developer: 'أورا ديفلوبرز', city: 'الشيخ زايد', country: 'مصر' },
+  // ...يمكنك إضافة المزيد لاحقًا...
+];

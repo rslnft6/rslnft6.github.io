@@ -1,0 +1,21 @@
+.welcomeBar {
+  width: 100vw;
+  background: linear-gradient(90deg, #6dd5ed 0%, #2193b0 100%);
+  color: #fff;
+  font-size: 1.3rem;
+  text-align: center;
+  padding: 12px 0;
+  font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
+  letter-spacing: 1px;
+  z-index: 2000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 2px 16px rgba(33,147,176,0.13);
+  animation: fadeIn 1s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

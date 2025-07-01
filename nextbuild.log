@@ -1,0 +1,15 @@
+   ▲ Next.js 15.3.3
+
+   Skipping linting
+   Checking validity of types ...
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 11.0s
+   Collecting page data ...
+Error [FirebaseError]: Firebase: Error (auth/invalid-api-key).
+    at <unknown> (.next/server/pages/ad-details.js:1:5895) {
+  code: 'auth/invalid-api-key',
+  customData: [Object]
+}
+
+> Build error occurred
+[Error: Failed to collect page data for /ad-details] { type: 'Error' }

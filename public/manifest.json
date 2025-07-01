@@ -1,0 +1,9 @@
+{
+  "name": "Realstatelive",
+  "short_name": "Realstatelive",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#00bcd4",
+  "icons": []
+}
