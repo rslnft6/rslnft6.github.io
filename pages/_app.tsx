@@ -2,7 +2,7 @@ import '../styles/globals.css';
 import type { AppProps } from "next/app";
 import '../data/i18n';
 import { BackgroundProvider, useBackground } from '../components/BackgroundProvider';
-import WelcomeBar from '../components/WelcomeBar';
+import MarqueeBar from '../components/MarqueeBar';
 
 function BackgroundLayout({ children }: { children: React.ReactNode }) {
   const bg = useBackground();
@@ -23,8 +23,8 @@ function BackgroundLayout({ children }: { children: React.ReactNode }) {
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <BackgroundProvider>
+      <MarqueeBar />
       <BackgroundLayout>
-        <WelcomeBar />
         <Component {...pageProps} />
       </BackgroundLayout>
     </BackgroundProvider>
