@@ -1,53 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { db } from '../data/firebase';
-import { doc as fsDoc, getDoc, setDoc } from 'firebase/firestore';
+import { doc as fsDoc, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 const AdsPanel: React.FC = () => {
   const [images, setImages] = useState<{url:string, link?:string, title?:string}[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // --- الشريط الكتابي المتحرك ---
-  const [marquee, setMarquee] = useState({ texts: ["فرحنا بوجودك معنا!"], speed: 30, color: "#ff9800", fontSize: 20, lang: 'ar' });
-  const [marqueeLoading, setMarqueeLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-
-  useEffect(() => {
-    const fetchSlider = async () => {
-      setLoading(true);
-      try {
-        const ref = fsDoc(db, 'settings', 'slider');
-        const snap = await getDoc(ref);
-        if (snap.exists()) setImages(snap.data().images || []);
-      } catch (err) { setErrorMsg('خطأ في جلب الصور'); }
-      setLoading(false);
-    };
-    fetchSlider();
-  }, []);
-
-  useEffect(() => {
-    // جلب إعدادات الشريط المتحرك
-    const fetchMarquee = async () => {
-      setMarqueeLoading(true);
-      try {
-        const ref = fsDoc(db, 'settings', 'marquee');
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const d = snap.data();
-          setMarquee({
-            texts: d.texts || ["فرحنا بوجودك معنا!"],
-            speed: d.speed || 30,
-            color: d.color || "#ff9800",
-            fontSize: d.fontSize || 20,
-            lang: d.lang || 'ar'
-          });
-        }
-      } catch { setErrorMsg('خطأ في جلب الشريط الكتابي'); }
-      setMarqueeLoading(false);
-    };
-    fetchMarquee();
-  }, []);
 
   // إضافة صورة مع تفاصيل
   const [newImage, setNewImage] = useState<File|null>(null);
@@ -113,41 +73,11 @@ const AdsPanel: React.FC = () => {
     setLoading(false);
   };
 
-  const handleSaveMarquee = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMarqueeLoading(true);
-    setErrorMsg(''); setSuccessMsg('');
-    try {
-      const ref = fsDoc(db, 'settings', 'marquee');
-      await setDoc(ref, marquee);
-      setSuccessMsg('تم حفظ الشريط الكتابي بنجاح');
-    } catch { setErrorMsg('حدث خطأ أثناء الحفظ'); }
-    setMarqueeLoading(false);
-  };
-
   return (
     <div className="glass-table" style={{maxWidth:700,margin:'0 auto'}}>
       <h2 style={{color:'#00bcd4',fontWeight:'bold'}}>إدارة الإعلانات (السلايدر)</h2>
       {successMsg && <div style={{color:'#388e3c',fontWeight:'bold',marginBottom:8}}>{successMsg}</div>}
       {errorMsg && <div style={{color:'#e53935',fontWeight:'bold',marginBottom:8}}>{errorMsg}</div>}
-      {/* إدارة الشريط الكتابي المتحرك */}
-      <form className="glass-form" onSubmit={handleSaveMarquee} style={{marginBottom:24,background:'rgba(255,255,255,0.18)',borderRadius:16,padding:16}}>
-        <h3 style={{color:'#ff9800',fontWeight:'bold'}}>الشريط الكتابي المتحرك</h3>
-        <textarea required rows={2} value={marquee.texts.join('\n')} onChange={e=>setMarquee(m=>({...m,texts:e.target.value.split('\n')}))} placeholder="اكتب النصوص (كل سطر نص منفصل)" style={{width:'100%',borderRadius:8,padding:8,marginBottom:8}} />
-        <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:8}}>
-          <label>اللون:</label>
-          <input type="color" value={marquee.color} onChange={e=>setMarquee(m=>({...m,color:e.target.value}))} />
-          <label>حجم الخط:</label>
-          <input type="number" min={12} max={60} value={marquee.fontSize} onChange={e=>setMarquee(m=>({...m,fontSize:Number(e.target.value)}))} style={{width:60}} />
-          <label>اللغة:</label>
-          <select value={marquee.lang} onChange={e=>setMarquee(m=>({...m,lang:e.target.value}))}>
-            <option value="ar">العربية</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <button className="glass-btn" type="submit" disabled={marqueeLoading}>حفظ الشريط الكتابي</button>
-        {marqueeLoading && <span style={{marginRight:12}}>جاري الحفظ...</span>}
-      </form>
       {/* إدارة صور السلايدر مع تفاصيل وتعديل مباشر */}
       <form className="glass-form" onSubmit={handleAddImage} style={{marginBottom:24}}>
         <input type="file" accept="image/*" onChange={e=>setNewImage(e.target.files?.[0]||null)} />

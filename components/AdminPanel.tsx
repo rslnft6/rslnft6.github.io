@@ -539,449 +539,340 @@ export default function AdminPanel() {
                     setSnackbar({open: true, message: 'تم تحديث الوحدة بنجاح', severity: 'success'});
                   } else {
                     const docRef = await addDoc(collection(db, 'units'), unitForm);
-                    setUnits([...units, { ...unitForm, id: docRef.id }]);
+                    setUnits([...units, { id: docRef.id, ...unitForm }]);
                     setSnackbar({open: true, message: 'تم إضافة الوحدة بنجاح', severity: 'success'});
                   }
                   setUnitDialog(false);
                 }}
-              >{uploading ? 'انتظر انتهاء رفع الصور...' : (editingUnit ? 'تحديث' : 'إضافة')}</Button>
+              >
+                {editingUnit ? 'تحديث الوحدة' : 'إضافة الوحدة'}
+              </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
       {/* تبويب الموظفين */}
       {tab === 1 && (
-        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الموظفين</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
-          <Grid container spacing={2} mt={1}>
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الموظفين</Typography>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
+          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {employees.map((emp: any) => (
-              <Box key={emp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%' }}>
+              <Grid item xs={12} sm={6} md={4} key={emp.id}>
+                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
-                    <Typography variant="h6">{emp.username}</Typography>
-                    <Typography variant="body2">الدور: {emp.role}</Typography>
+                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{emp.username}</Typography>
+                    <Typography variant="body2" sx={{color:'#fff'}}>الدور: {emp.role}</Typography>
                   </CardContent>
                   <CardActions>
-                    <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit /></IconButton>
+                    <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الموظف؟`, onConfirm: async () => {
-                      await deleteDoc(doc(db, 'employees', emp.id!));
+                      await deleteDoc(doc(db, 'employees', emp.id));
                       setEmployees(employees.filter((e: any) => e.id !== emp.id));
                       setSnackbar({open: true, message: 'تم حذف الموظف بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Box>
+              </Grid>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل موظف */}
           <Dialog open={employeeDialog} onClose={() => setEmployeeDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle>{editingEmployee ? 'تعديل موظف' : 'إضافة موظف'}</DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, username: e.target.value }))} />
-                <TextField label="كلمة السر" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, password: e.target.value }))} />
-                <FormControl fullWidth>
-                  <InputLabel>الدور</InputLabel>
-                  <Select value={employeeForm.role} onChange={e => setEmployeeForm((f: typeof employeeForm) => ({ ...f, role: e.target.value }))} label="الدور">
-                    <MenuItem value="مدير">مدير</MenuItem>
-                    <MenuItem value="مشرف">مشرف</MenuItem>
-                    <MenuItem value="بروكر">بروكر</MenuItem>
-                    <MenuItem value="تسويق">تسويق</MenuItem>
-                    <MenuItem value="موظف">موظف</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingEmployee ? 'تعديل موظف' : 'إضافة موظف'}</DialogTitle>
+            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
+              <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm(f => ({ ...f, username: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="كلمة المرور" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm(f => ({ ...f, password: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <FormControl fullWidth sx={{mt:2}}>
+                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>الدور</InputLabel>
+                <Select value={employeeForm.role} onChange={e => setEmployeeForm(f => ({ ...f, role: e.target.value }))} label="الدور" sx={{color:'#fff'}}>
+                  <MenuItem value="موظف">موظف</MenuItem>
+                  <MenuItem value="مدير">مدير</MenuItem>
+                  <MenuItem value="مطور">مطور</MenuItem>
+                </Select>
+              </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setEmployeeDialog(false)}>إلغاء</Button>
-              <Button variant="contained" onClick={async () => {
-                if (editingEmployee) {
-                  await updateDoc(doc(db, 'employees', editingEmployee.id!), employeeForm);
-                  setEmployees(employees.map(e => e.id === editingEmployee.id ? { ...e, ...employeeForm } : e));
-                  setSnackbar({open: true, message: 'تم تحديث الموظف بنجاح', severity: 'success'});
-                } else {
-                  const docRef = await addDoc(collection(db, 'employees'), employeeForm);
-                  setEmployees([...employees, { ...employeeForm, id: docRef.id }]);
-                  setSnackbar({open: true, message: 'تم إضافة الموظف بنجاح', severity: 'success'});
-                }
-                setEmployeeDialog(false);
-              }}>{editingEmployee ? 'تحديث' : 'إضافة'}</Button>
+              <Button onClick={() => setEmployeeDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
+                onClick={async () => {
+                  if (editingEmployee) {
+                    await updateDoc(doc(db, 'employees', editingEmployee.id), employeeForm);
+                    setEmployees(employees.map(e => e.id === editingEmployee.id ? { ...e, ...employeeForm } : e));
+                    setSnackbar({open: true, message: 'تم تحديث الموظف بنجاح', severity: 'success'});
+                  } else {
+                    const docRef = await addDoc(collection(db, 'employees'), employeeForm);
+                    setEmployees([...employees, { id: docRef.id, ...employeeForm }]);
+                    setSnackbar({open: true, message: 'تم إضافة الموظف بنجاح', severity: 'success'});
+                  }
+                  setEmployeeDialog(false);
+                }}
+              >
+                {editingEmployee ? 'تحديث الموظف' : 'إضافة الموظف'}
+              </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
       {/* تبويب المطورين */}
       {tab === 2 && (
-        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة المطورين العقاريين</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
-          <Grid container spacing={2} mt={1}>
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة المطورين</Typography>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
+          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {developers.map((dev: Developer) => (
-              <Box key={dev.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%' }}>
-                  <CardMedia image={dev.images?.[0] || '/images/bg1.png'} title={dev.name} sx={{ height: 140 }} />
+              <Grid item xs={12} sm={6} md={4} key={dev.id}>
+                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
-                    <Typography variant="h6">{dev.name}</Typography>
-                    <Typography variant="body2">{dev.country}</Typography>
-                    <Typography variant="body2">{dev.achievements}</Typography>
+                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{dev.name}</Typography>
+                    <Typography variant="body2" sx={{color:'#fff'}}>الدولة: {dev.country}</Typography>
+                    <Typography variant="body2" sx={{color:'#fff'}}>الإنجازات: {dev.achievements}</Typography>
                   </CardContent>
                   <CardActions>
-                    <IconButton onClick={() => { setEditingDev(dev); setDevForm(dev); setDevDialog(true); }}><Edit /></IconButton>
+                    <IconButton onClick={() => { setEditingDev(dev); setDevForm(dev); setDevDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف المطور؟`, onConfirm: async () => {
-                      await deleteDoc(doc(db, 'developers', dev.id!));
+                      await deleteDoc(doc(db, 'developers', dev.id));
                       setDevelopers(developers.filter((d: Developer) => d.id !== dev.id));
                       setSnackbar({open: true, message: 'تم حذف المطور بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Box>
+              </Grid>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل مطور */}
-          <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="أهم الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="نبذة عن المطور" fullWidth multiline rows={3} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="المرافق (افصل بينها بفاصلة)" fullWidth value={devForm.facilities?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, facilities: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="مرافق قريبة (افصل بينها بفاصلة)" fullWidth value={devForm.nearBy?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, nearBy: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="روابط أيقونات (افصل بينها بفاصلة)" fullWidth value={devForm.icons?.join(',')||''} onChange={e => setDevForm(f => ({ ...f, icons: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <ImageUploader
-                    images={devForm.images || []}
-                    onAdd={(urls: string[]) => setDevForm((f: Developer) => ({ ...f, images: [...(f.images || []), ...urls] }))}
-                    onRemove={(idx: number) => setDevForm((f: Developer) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
-                  />
-                </Box>
-              </Box>
+          <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
+            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
+              <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setDevDialog(false)}>إلغاء</Button>
-              <Button variant="contained" onClick={async () => {
-                if (editingDev) {
-                  await updateDoc(doc(db, 'developers', editingDev.id!), devForm);
-                  setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, ...devForm } : d));
-                  setSnackbar({open: true, message: 'تم تحديث المطور بنجاح', severity: 'success'});
-                } else {
-                  const docRef = await addDoc(collection(db, 'developers'), devForm);
-                  setDevelopers([...developers, { ...devForm, id: docRef.id }]);
-                  setSnackbar({open: true, message: 'تم إضافة المطور بنجاح', severity: 'success'});
-                }
-                setDevDialog(false);
-              }}>{editingDev ? 'تحديث' : 'إضافة'}</Button>
+              <Button onClick={() => setDevDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
+                onClick={async () => {
+                  if (editingDev) {
+                    await updateDoc(doc(db, 'developers', editingDev.id), devForm);
+                    setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, ...devForm } : d));
+                    setSnackbar({open: true, message: 'تم تحديث المطور بنجاح', severity: 'success'});
+                  } else {
+                    const docRef = await addDoc(collection(db, 'developers'), devForm);
+                    setDevelopers([...developers, { id: docRef.id, ...devForm }]);
+                    setSnackbar({open: true, message: 'تم إضافة المطور بنجاح', severity: 'success'});
+                  }
+                  setDevDialog(false);
+                }}
+              >
+                {editingDev ? 'تحديث المطور' : 'إضافة المطور'}
+              </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
       {/* تبويب الكمباوندات */}
       {tab === 3 && (
-        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الكمباوندات</Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
-          <Grid container spacing={2} mt={1}>
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الكمباوندات</Typography>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
+          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {compounds.map((comp: Compound) => (
-              <Box key={comp.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%' }}>
-                  <CardMedia image={comp.images?.[0] || '/images/bg1.png'} title={comp.name} sx={{ height: 140 }} />
+              <Grid item xs={12} sm={6} md={4} key={comp.id}>
+                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
-                    <Typography variant="h6">{comp.name}</Typography>
-                    <Typography variant="body2">{comp.country} - {comp.developer}</Typography>
+                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{comp.name}</Typography>
+                    <Typography variant="body2" sx={{color:'#fff'}}>المطور: {comp.developer}</Typography>
+                    <Typography variant="body2" sx={{color:'#fff'}}>الدولة: {comp.country}</Typography>
                   </CardContent>
                   <CardActions>
-                    <IconButton onClick={() => { setEditingCompound(comp); setCompoundForm(comp); setCompoundDialog(true); }}><Edit /></IconButton>
+                    <IconButton onClick={() => { setEditingCompound(comp); setCompoundForm(comp); setCompoundDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الكمباوند؟`, onConfirm: async () => {
-                      await deleteDoc(doc(db, 'compounds', comp.id!));
+                      await deleteDoc(doc(db, 'compounds', comp.id));
                       setCompounds(compounds.filter((c: Compound) => c.id !== comp.id));
                       setSnackbar({open: true, message: 'تم حذف الكمباوند بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Box>
+              </Grid>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل كمباوند */}
-          <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
-            <DialogContent>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="العنوان أو وصف الموقع (اختياري)" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} />
-                  <MapPicker lat={compoundForm.lat || 30.0444} lng={compoundForm.lng || 31.2357} onChange={(lat, lng) => setCompoundForm(f => ({ ...f, lat, lng }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={2} value={compoundForm.about||''} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="أهم الإنجازات" fullWidth value={compoundForm.achievements||''} onChange={e => setCompoundForm(f => ({ ...f, achievements: e.target.value }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="المرافق (افصل بينها بفاصلة)" fullWidth value={compoundForm.facilities?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, facilities: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="مرافق قريبة (افصل بينها بفاصلة)" fullWidth value={compoundForm.nearBy?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, nearBy: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="روابط أيقونات (افصل بينها بفاصلة)" fullWidth value={compoundForm.icons?.join(',')||''} onChange={e => setCompoundForm(f => ({ ...f, icons: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) }))} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <ImageUploader
-                    images={compoundForm.images || []}
-                    onAdd={(urls: string[]) => setCompoundForm((f: Compound) => ({ ...f, images: [...(f.images || []), ...urls] }))}
-                    onRemove={(idx: number) => setCompoundForm((f: Compound) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
-                  />
-                </Box>
-              </Box>
+          <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
+            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
+              <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setCompoundDialog(false)}>إلغاء</Button>
-              <Button variant="contained" onClick={async () => {
-                if (editingCompound) {
-                  await updateDoc(doc(db, 'compounds', editingCompound.id!), compoundForm);
-                  setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, ...compoundForm } : c));
-                  setSnackbar({open: true, message: 'تم تحديث الكمباوند بنجاح', severity: 'success'});
-                } else {
-                  const docRef = await addDoc(collection(db, 'compounds'), compoundForm);
-                  setCompounds([...compounds, { ...compoundForm, id: docRef.id }]);
-                  setSnackbar({open: true, message: 'تم إضافة الكمباوند بنجاح', severity: 'success'});
-                }
-                setCompoundDialog(false);
-              }}>{editingCompound ? 'تحديث' : 'إضافة'}</Button>
+              <Button onClick={() => setCompoundDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
+                onClick={async () => {
+                  if (editingCompound) {
+                    await updateDoc(doc(db, 'compounds', editingCompound.id), compoundForm);
+                    setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, ...compoundForm } : c));
+                    setSnackbar({open: true, message: 'تم تحديث الكمباوند بنجاح', severity: 'success'});
+                  } else {
+                    const docRef = await addDoc(collection(db, 'compounds'), compoundForm);
+                    setCompounds([...compounds, { id: docRef.id, ...compoundForm }]);
+                    setSnackbar({open: true, message: 'تم إضافة الكمباوند بنجاح', severity: 'success'});
+                  }
+                  setCompoundDialog(false);
+                }}
+              >
+                {editingCompound ? 'تحديث الكمباوند' : 'إضافة الكمباوند'}
+              </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
-      {/* تبويب الإعلانات (السلايدر) */}
+      {/* تبويب الإعلانات */}
       {tab === 4 && (
-        <Box mt={2}><Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الإعلانات (السلايدر)</Typography>
-          <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setSliderDialog(true)} sx={{mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>إضافة إعلان</Button>
-          <Grid container spacing={3} mt={1}>
-            {slider.map((img, i) => (
-              <Box key={i} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8 }}>
-                  <CardMedia image={img} sx={{ height: 160, borderRadius:4 }} />
-                  <CardActions>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الإعلان؟`, onConfirm: async () => {
-                      const newSlider = slider.filter((_, idx) => idx !== i);
-                      setSlider(newSlider);
-                      setSnackbar({open: true, message: 'تم حذف الإعلان بنجاح', severity: 'success'});
-                    }})}><Delete /></IconButton>
-                    <Button component="label" startIcon={<CloudUpload />} size="small" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>
-                      استبدال
-                      <input type="file" hidden accept="image/*" onChange={async e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = await uploadImage(file, 'slider');
-                          setSlider(slider.map((s, idx) => idx === i ? url : s));
-                          setSnackbar({open:true, message:'تم استبدال صورة الإعلان', severity:'success'});
-                        }
-                      }} />
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          <Dialog open={sliderDialog} onClose={() => setSliderDialog(false)}>
-            <DialogTitle sx={{color:'#00bcd4', fontWeight:'bold'}}>إضافة صورة إعلان للسلايدر</DialogTitle>
-            <DialogContent>
-              <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>
-                رفع صورة إعلان
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const url = await uploadImage(file, 'slider');
-                      setSlider(prev => [...prev, url].slice(0, 10));
-                      setSnackbar({open:true, message:'تم رفع صورة الإعلان', severity:'success'});
-                      setSliderDialog(false);
-                    }
-                  }}
-                />
-              </Button>
-            </DialogContent>
-          </Dialog>
-          <Box mt={2}>
-            <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} onClick={async () => {
-              // حفظ السلايدر في فايرستور
-              const snap = await getDocs(collection(db, 'slider'));
-              await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'slider', d.id))));
-              await Promise.all(slider.slice(0, 10).map(url => addDoc(collection(db, 'slider'), { url })));
-              // تحديث السلايدر من فايرستور بعد الحفظ
-              const newSnap = await getDocs(collection(db, 'slider'));
-              setSlider(newSnap.docs.map(d => d.data().url as string));
-              setSnackbar({open: true, message: 'تم حفظ السلايدر بنجاح', severity: 'success'});
-            }}>حفظ السلايدر</Button>
-          </Box>
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الإعلانات</Typography>
+          <AdsPanel />
         </Box>
       )}
       {/* تبويب الخلفيات */}
       {tab === 5 && (
-        <Box mt={2}><Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الخلفيات الرئيسية</Typography>
-          <Button variant="contained" startIcon={<CloudUpload />} onClick={() => setBgDialog(true)} sx={{mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>إضافة خلفية</Button>
-          <Grid container spacing={3} mt={1}>
-            {backgrounds.slice(0, 4).map((bg, i) => (
-              <Box key={i} sx={{ width: { xs: '50%', md: '25%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'rgba(255,255,255,0.7)', color:'#181c2a', borderRadius:6, boxShadow:8, backdropFilter:'blur(8px)', border:'2px solid #fff' }}>
-                  <CardMedia image={bg} sx={{ height: 140, borderRadius:6 }} />
-                  <CardActions>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الخلفية؟`, onConfirm: async () => {
-                      const snap = await getDocs(collection(db, 'backgrounds'));
-                      const docId = snap.docs[i]?.id;
-                      if (docId) {
-                        await deleteDoc(doc(db, 'backgrounds', docId));
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الخلفيات</Typography>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setBgDialog(true); }}>رفع خلفية جديدة</Button>
+          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
+            {backgrounds.map((bg, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <Card sx={{ position: 'relative', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+                  <CardMedia image={bg} title={`خلفية ${i+1}`} sx={{ height: 180, borderRadius:4 }} />
+                  <IconButton size="small" sx={{ position: 'absolute', top: 8, right: 8, bgcolor: '#00bcd4', color: '#181c2a', '&:hover': { bgcolor: '#00bcd4' } }} onClick={async (e) => {
+                    e.stopPropagation();
+                    setConfirmDialog({open: true, message: `هل أنت متأكد من حذف هذه الخلفية؟`, onConfirm: async () => {
+                      try {
+                        const desertRef = ref(storage, bg);
+                        await deleteObject(desertRef);
                         setBackgrounds(backgrounds.filter((_, idx) => idx !== i));
                         setSnackbar({open: true, message: 'تم حذف الخلفية بنجاح', severity: 'success'});
+                      } catch (error) {
+                        setSnackbar({open: true, message: 'فشل حذف الخلفية', severity: 'error'});
                       }
-                    }})}><Delete /></IconButton>
-                    <Button component="label" startIcon={<CloudUpload />} size="small" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>
-                      استبدال
-                      <input type="file" hidden accept="image/*" onChange={async e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = await uploadImage(file, 'backgrounds');
-                          const snap = await getDocs(collection(db, 'backgrounds'));
-                          const docId = snap.docs[i]?.id;
-                          if (docId) {
-                            await updateDoc(doc(db, 'backgrounds', docId), { url });
-                            setBackgrounds(backgrounds.map((b, idx) => idx === i ? url : b));
-                            setSnackbar({open:true, message:'تم استبدال الخلفية', severity:'success'});
-                          }
-                        }
-                      }} />
-                    </Button>
-                  </CardActions>
+                    }});
+                  }}>
+                    <Delete />
+                  </IconButton>
                 </Card>
-              </Box>
+              </Grid>
             ))}
           </Grid>
-          <Dialog open={bgDialog} onClose={() => setBgDialog(false)}>
-            <DialogTitle sx={{color:'#00bcd4', fontWeight:'bold'}}>إضافة خلفية</DialogTitle>
-            <DialogContent>
-              <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}>
-                رفع صورة خلفية
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const url = await uploadImage(file, 'backgrounds');
-                      setBackgrounds(prev => [...prev, url].slice(0, 4));
-                      setSnackbar({open:true, message:'تم رفع الخلفية', severity:'success'});
-                      setBgDialog(false); // إغلاق الحوار مباشرة بعد اختيار الصورة
-                    }
-                  }}
-                />
+          {/* حوار رفع خلفية جديدة */}
+          <Dialog open={bgDialog} onClose={() => setBgDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>رفع خلفية جديدة</DialogTitle>
+            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
+              <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
+                {uploading ? <CircularProgress size={22} color="inherit" /> : 'اختر صورة الخلفية'}
+                <input type="file" hidden accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (!e.target.files) return;
+                  setUploading(true);
+                  const file = e.target.files[0] as File;
+                  try {
+                    const url = await uploadImage(file, 'backgrounds');
+                    setBackgrounds([...backgrounds, url]);
+                    setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
+                  } catch (err) {
+                    setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
+                  }
+                  setUploading(false);
+                }} />
               </Button>
             </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setBgDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+            </DialogActions>
           </Dialog>
-          <Box mt={2}>
-            <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} onClick={async () => {
-              // حفظ الترتيب الحالي للصور (يتم حذف كل الصور ثم إعادة رفع الحالية)
-              const snap = await getDocs(collection(db, 'backgrounds'));
-              // حذف كل الصور القديمة
-              await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'backgrounds', d.id))));
-              // إضافة الصور الحالية
-              await Promise.all(backgrounds.slice(0, 4).map(url => addDoc(collection(db, 'backgrounds'), { url })));
-              // تحديث الخلفيات من فايرستور بعد الحفظ
-              const newSnap = await getDocs(collection(db, 'backgrounds'));
-              setBackgrounds(newSnap.docs.map(d => d.data().url as string));
-              setSnackbar({open: true, message: 'تم حفظ الخلفيات بنجاح', severity: 'success'});
-            }}>حفظ الخلفيات</Button>
-          </Box>
         </Box>
       )}
       {/* تبويب الشريط الكتابي */}
       {tab === 6 && (
-        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة الشريط الكتابي المتحرك</Typography>
-          <Button variant="contained" startIcon={<Edit />} onClick={() => setMarqueeDialog(true)}>تعديل الشريط الكتابي</Button>
-          <Box mt={2}>
-            <Typography>النصوص الحالية:</Typography>
-            <ul>
-              {marquee.texts.map((t, i) => <li key={i}>{typeof t === 'string' ? t : JSON.stringify(t)}</li>)}
-            </ul>
-            <Typography>السرعة: {marquee.speed} - اللون: {marquee.color} - الحجم: {marquee.fontSize}</Typography>
-          </Box>
-          <Dialog open={marqueeDialog} onClose={() => setMarqueeDialog(false)}>
-            <DialogTitle>تعديل الشريط الكتابي</DialogTitle>
-            <DialogContent>
-              <TextField label="النصوص (افصل بينها بفاصلة)" fullWidth value={marquee.texts.join(',')} onChange={e => setMarquee(m => ({ ...m, texts: e.target.value.split(',') }))} />
-              <TextField label="السرعة" fullWidth value={marquee.speed} onChange={e => setMarquee(m => ({ ...m, speed: Number(e.target.value) }))} />
-              <TextField label="اللون" fullWidth value={marquee.color} onChange={e => setMarquee(m => ({ ...m, color: e.target.value }))} />
-              <TextField label="الحجم" fullWidth value={marquee.fontSize} onChange={e => setMarquee(m => ({ ...m, fontSize: Number(e.target.value) }))} />
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الشريط الكتابي</Typography>
+          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setMarqueeDialog(true); }}>تعديل الشريط الكتابي</Button>
+          <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, p:2 }}>
+            <Typography variant="body1" sx={{color:'#00bcd4', fontWeight:'bold', mb:1}}>نصوص الشريط الكتابي:</Typography>
+            {marquee.texts.length === 0 ? (
+              <Typography variant="body2" sx={{color:'#bbb'}}>لا توجد نصوص حالياً.</Typography>
+            ) : (
+              <Box sx={{display:'flex',flexDirection:'column',gap:1}}>
+                {marquee.texts.map((text, i) => (
+                  <Typography key={i} variant="body2" sx={{color:'#fff', display:'flex', alignItems:'center', gap:1}}>
+                    <span>{i+1}.</span>
+                    <span>{text}</span>
+                  </Typography>
+                ))}
+              </Box>
+            )}
+          </Card>
+          {/* حوار تعديل الشريط الكتابي */}
+          <Dialog open={marqueeDialog} onClose={() => setMarqueeDialog(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>تعديل الشريط الكتابي</DialogTitle>
+            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
+              <TextField label="نص الشريط الكتابي" fullWidth value={marquee.texts.join('; ')} onChange={e => {
+                const texts = e.target.value.split(';').map(t => t.trim()).filter(t => t);
+                setMarquee(f => ({ ...f, texts }));
+              }} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <FormControl fullWidth sx={{mt:2}}>
+                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>سرعة الحركة</InputLabel>
+                <Select value={marquee.speed.toString()} onChange={e => setMarquee(f => ({ ...f, speed: Number(e.target.value) }))} label="سرعة الحركة" sx={{color:'#fff'}}>
+                  <MenuItem value={10}>بطيء</MenuItem>
+                  <MenuItem value={30}>متوسط</MenuItem>
+                  <MenuItem value={50}>سريع</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth sx={{mt:2}}>
+                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>لون النص</InputLabel>
+                <Select value={marquee.color} onChange={e => setMarquee(f => ({ ...f, color: e.target.value }))} label="لون النص" sx={{color:'#fff'}}>
+                  <MenuItem value="#ff9800">برتقالي</MenuItem>
+                  <MenuItem value="#00bcd4">أزرق</MenuItem>
+                  <MenuItem value="#4caf50">أخضر</MenuItem>
+                  <MenuItem value="#f44336">أحمر</MenuItem>
+                  <MenuItem value="#fff">أبيض</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth sx={{mt:2}}>
+                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>حجم الخط</InputLabel>
+                <Select value={marquee.fontSize.toString()} onChange={e => setMarquee(f => ({ ...f, fontSize: Number(e.target.value) }))} label="حجم الخط" sx={{color:'#fff'}}>
+                  <MenuItem value={16}>صغير</MenuItem>
+                  <MenuItem value={20}>متوسط</MenuItem>
+                  <MenuItem value={24}>كبير</MenuItem>
+                </Select>
+              </FormControl>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setMarqueeDialog(false)}>إلغاء</Button>
-              <Button variant="contained" onClick={async () => {
-                // تحديث الشريط الكتابي في فايرستور
-                const snap = await getDocs(collection(db, 'marquee'));
-                if (snap.docs.length > 0) {
-                  await updateDoc(doc(db, 'marquee', snap.docs[0].id), marquee);
+              <Button onClick={() => setMarqueeDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
+                onClick={async () => {
+                  await updateDoc(doc(db, 'marquee', 'معلومات الشريط الكتابي'), {
+                    texts: marquee.texts,
+                    speed: marquee.speed,
+                    color: marquee.color,
+                    fontSize: marquee.fontSize,
+                  });
                   setSnackbar({open: true, message: 'تم تحديث الشريط الكتابي بنجاح', severity: 'success'});
-                } else {
-                  await addDoc(collection(db, 'marquee'), marquee);
-                  setSnackbar({open: true, message: 'تم إضافة الشريط الكتابي بنجاح', severity: 'success'});
-                }
-                setMarqueeDialog(false);
-              }}>تحديث</Button>
+                  setMarqueeDialog(false);
+                }}
+              >
+                تحديث الشريط الكتابي
+              </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
       {/* تبويب تواصل معنا */}
       {tab === 7 && (
-        <Box mt={2}><Typography variant="h6" sx={{mb:2}}>إدارة روابط التواصل معنا</Typography>
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة معلومات التواصل</Typography>
           <ContactLinksPanel />
         </Box>
       )}
-    {/* حوار تأكيد الحذف */}
-    <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({...confirmDialog, open: false})}>
-      <DialogTitle>تأكيد الحذف</DialogTitle>
-      <DialogContent>
-        <Typography>{confirmDialog.message}</Typography>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setConfirmDialog({...confirmDialog, open: false})}>إلغاء</Button>
-        <Button color="error" variant="contained" onClick={async () => {
-          await confirmDialog.onConfirm();
-          setConfirmDialog({...confirmDialog, open: false});
-        }}>حذف</Button>
-      </DialogActions>
-    </Dialog>
-    {/* Snackbar */}
-    <Snackbar open={snackbar.open} autoHideDuration={3500} onClose={() => setSnackbar({...snackbar, open: false})} anchorOrigin={{vertical:'bottom',horizontal:'center'}}>
-      <Alert onClose={() => setSnackbar({...snackbar, open: false})} severity={snackbar.severity || 'success'} variant="filled" sx={{fontWeight:'bold',fontSize:16}}>
-        {snackbar.message}
-      </Alert>
-    </Snackbar>
     </Box>
   );
 }
