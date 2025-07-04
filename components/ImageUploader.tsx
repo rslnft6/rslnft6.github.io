@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
@@ -41,6 +40,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
           },
           (error) => {
             setTempImages((prev: TempImage[]) => prev.filter((ti: TempImage) => ti.file !== file));
+            alert('فشل رفع الصورة! تأكد من اتصالك بالإنترنت وصلاحيات التخزين.');
             reject(error);
           },
           async () => {
