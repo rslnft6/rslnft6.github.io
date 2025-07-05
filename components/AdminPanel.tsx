@@ -341,14 +341,19 @@ export default function AdminPanel() {
               const selected = compareUnits.some((u: Unit) => u.id === unit.id);
               return (
                 <Box key={unit.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
-                  <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+                  <Card
+                    sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', cursor:'pointer', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}
+                    onClick={() => {
+                      if (unit.id) window.open(`/property/${unit.id}`, '_blank');
+                    }}
+                  >
                     <CardMedia image={unit.images?.[0] || '/images/bg1.png'} title={unit.title} sx={{ height: { xs: 120, md: 180 }, borderRadius:4 }} />
                     <CardContent>
                       <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold', fontSize: { xs: 18, md: 22 }}}>{unit.title}</Typography>
                       <Typography variant="body2" sx={{color:'#fff', fontSize: { xs: 14, md: 16 }}}>{unit.country} - {unit.compound}</Typography>
                       <Typography variant="body2" sx={{color:'#fff', fontSize: { xs: 14, md: 16 }}}>المساحة: {unit.area}م - السعر: {unit.minPrice} - {unit.maxPrice}</Typography>
                     </CardContent>
-                    <CardActions>
+                    <CardActions onClick={e => e.stopPropagation()}>
                       <IconButton onClick={() => { setEditingUnit(unit); setUnitForm(unit); setUnitDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                       <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الوحدة؟`, onConfirm: async () => {
                         await deleteDoc(doc(db, 'units', unit.id!));
@@ -372,11 +377,11 @@ export default function AdminPanel() {
           <UnitsCompareDialog open={compareOpen} onClose={()=>setCompareOpen(false)} units={compareUnits} />
           {/* حوار إضافة/تعديل وحدة */}
           <Dialog open={unitDialog} onClose={() => setUnitDialog(false)} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 28, textAlign: 'center', letterSpacing: 1, mb: 1 }}>{editingUnit ? 'تعديل وحدة' : 'إضافة وحدة'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="العنوان (مثال: شقة فاخرة)" fullWidth value={unitForm.title} onChange={e => setUnitForm(f => ({ ...f, title: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+                  <TextField label="العنوان (مثال: شقة فاخرة)" fullWidth value={unitForm.title} onChange={e => setUnitForm(f => ({ ...f, title: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold', fontSize: 20 } }} sx={{input:{color:'#fff', fontWeight:'bold', fontSize: 20}, label:{color:'#00bcd4', fontWeight:'bold', fontSize: 20}}} />
                 </Box>
                 <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                   <FormControl fullWidth>
@@ -465,26 +470,25 @@ export default function AdminPanel() {
                 </Box>
                 {/* صور الوحدة */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                    <ImageUploader
-                      images={unitForm.images || []}
-                      onAdd={async (urls: string[]) => {
-                        // تحديث الصور مباشرة في الوحدة عند الإضافة
-                        setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
-                        if (editingUnit) {
-                          await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: [...(unitForm.images || []), ...urls] });
-                          setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: [...(unitForm.images || []), ...urls] } : u));
-                        }
-                      }}
-                      onRemove={async (idx: number) => {
-                        // حذف الصورة من الوحدة مباشرة
-                        const newImages = (unitForm.images || []).filter((_: string, i: number) => i !== idx);
-                        setUnitForm((f: Unit) => ({ ...f, images: newImages }));
-                        if (editingUnit) {
-                          await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: newImages });
-                          setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: newImages } : u));
-                        }
-                      }}
-                    />
+                  <Typography sx={{ color: '#00bcd4', fontWeight: 'bold', mb: 1, fontSize: 18 }}>صور الوحدة</Typography>
+                  <ImageUploader
+                    images={unitForm.images || []}
+                    onAdd={async (urls: string[]) => {
+                      setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
+                      if (editingUnit) {
+                        await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: [...(unitForm.images || []), ...urls] });
+                        setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: [...(unitForm.images || []), ...urls] } : u));
+                      }
+                    }}
+                    onRemove={async (idx: number) => {
+                      const newImages = (unitForm.images || []).filter((_: string, i: number) => i !== idx);
+                      setUnitForm((f: Unit) => ({ ...f, images: newImages }));
+                      if (editingUnit) {
+                        await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: newImages });
+                        setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: newImages } : u));
+                      }
+                    }}
+                  />
                 </Box>
                 {/* صور بانوراما */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
@@ -675,12 +679,44 @@ export default function AdminPanel() {
           </Grid>
           {/* حوار إضافة/تعديل مطور */}
           <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 28, textAlign: 'center', letterSpacing: 1, mb: 1 }}>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold', fontSize: 20 } }} sx={{input:{color:'#fff', fontWeight:'bold', fontSize: 20}, label:{color:'#00bcd4', fontWeight:'bold', fontSize: 20}}} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                  <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                  <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                {/* صور المطور */}
+                <Box sx={{ width: '100%' }}>
+                  <Typography sx={{ color: '#00bcd4', fontWeight: 'bold', mb: 1, fontSize: 18 }}>صور المطور</Typography>
+                  <ImageUploader
+                    images={devForm.images || []}
+                    onAdd={async (urls: string[]) => {
+                      setDevForm((f: Developer) => ({ ...f, images: [...(f.images || []), ...urls] }));
+                      if (editingDev) {
+                        await updateDoc(doc(db, 'developers', editingDev.id!), { ...devForm, images: [...(devForm.images || []), ...urls] });
+                        setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, images: [...(devForm.images || []), ...urls] } : d));
+                      }
+                    }}
+                    onRemove={async (idx: number) => {
+                      const newImages = (devForm.images || []).filter((_: string, i: number) => i !== idx);
+                      setDevForm((f: Developer) => ({ ...f, images: newImages }));
+                      if (editingDev) {
+                        await updateDoc(doc(db, 'developers', editingDev.id!), { ...devForm, images: newImages });
+                        setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, images: newImages } : d));
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDevDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
@@ -733,13 +769,47 @@ export default function AdminPanel() {
           </Grid>
           {/* حوار إضافة/تعديل كمباوند */}
           <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
+            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 28, textAlign: 'center', letterSpacing: 1, mb: 1 }}>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-              <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold', fontSize: 20 } }} sx={{input:{color:'#fff', fontWeight:'bold', fontSize: 20}, label:{color:'#00bcd4', fontWeight:'bold', fontSize: 20}}} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                  <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+                  <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                <Box sx={{ width: '100%' }}>
+                  <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+                </Box>
+                {/* صور الكمباوند */}
+                <Box sx={{ width: '100%' }}>
+                  <Typography sx={{ color: '#00bcd4', fontWeight: 'bold', mb: 1, fontSize: 18 }}>صور الكمباوند</Typography>
+                  <ImageUploader
+                    images={compoundForm.images || []}
+                    onAdd={async (urls: string[]) => {
+                      setCompoundForm((f: Compound) => ({ ...f, images: [...(f.images || []), ...urls] }));
+                      if (editingCompound) {
+                        await updateDoc(doc(db, 'compounds', editingCompound.id!), { ...compoundForm, images: [...(compoundForm.images || []), ...urls] });
+                        setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, images: [...(compoundForm.images || []), ...urls] } : c));
+                      }
+                    }}
+                    onRemove={async (idx: number) => {
+                      const newImages = (compoundForm.images || []).filter((_: string, i: number) => i !== idx);
+                      setCompoundForm((f: Compound) => ({ ...f, images: newImages }));
+                      if (editingCompound) {
+                        await updateDoc(doc(db, 'compounds', editingCompound.id!), { ...compoundForm, images: newImages });
+                        setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, images: newImages } : c));
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setCompoundDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>

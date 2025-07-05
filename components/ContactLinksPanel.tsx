@@ -51,7 +51,7 @@ export default function ContactLinksPanel() {
 
   return (
     <Box>
-      <Typography sx={{mb:2}}>يمكنك تعديل روابط التواصل وسيتم حفظها فوراً.</Typography>
+      <Typography sx={{mb:2}}>يمكنك تعديل روابط التواصل وسيتم حفظها فوراً. جميع الروابط فعالة وتظهر مباشرة في التطبيق.</Typography>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
         {links.map((link, i) => (
           <React.Fragment key={i}>
@@ -69,6 +69,28 @@ export default function ContactLinksPanel() {
       </Stack>
       <Button variant="contained" color="primary" sx={{mt:3}} onClick={handleSave} disabled={loading}>{loading ? 'جاري الحفظ...' : 'حفظ الروابط'}</Button>
       {success && <Typography color="success.main" sx={{mt:2}}>تم الحفظ بنجاح!</Typography>}
+
+      {/* عرض الروابط الفعالة */}
+      <Box sx={{mt:4}}>
+        <Typography sx={{fontWeight:'bold', color:'#00bcd4', mb:1}}>روابط التواصل الفعالة:</Typography>
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          {links.filter(l => l.url).map((link, i) => {
+            let href = link.url;
+            if (link.icon === 'whatsapp' && !href.startsWith('https://')) href = `https://wa.me/${href.replace(/[^\d]/g, '')}`;
+            if (link.icon === 'facebook' && !href.startsWith('https://')) href = `https://facebook.com/${href}`;
+            if (link.icon === 'instagram' && !href.startsWith('https://')) href = `https://instagram.com/${href}`;
+            if (link.icon === 'twitter' && !href.startsWith('https://')) href = `https://twitter.com/${href}`;
+            if (link.icon === 'telegram' && !href.startsWith('https://')) href = `https://t.me/${href}`;
+            if (link.icon === 'gmail' && !href.startsWith('mailto:')) href = `mailto:${href}`;
+            if (link.icon === 'phone' && !href.startsWith('tel:')) href = `tel:${href}`;
+            return (
+              <Button key={i} variant="outlined" color="primary" sx={{fontWeight:'bold'}} href={href} target="_blank" rel="noopener noreferrer">
+                {link.platform}
+              </Button>
+            );
+          })}
+        </Stack>
+      </Box>
     </Box>
   );
 }

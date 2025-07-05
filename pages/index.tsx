@@ -522,7 +522,22 @@ export default function Home() {
           <Swiper spaceBetween={12} slidesPerView={2} style={{marginBottom: 32}}>
             {filteredProperties.slice(0, 10).map((property) => (
               <SwiperSlide key={property.id}>
-                <div className="card" style={{cursor:'pointer',border:'2px solid #00bcd4',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0',position:'relative'}} onClick={()=>window.location.href=`/property/${property.id}`}> 
+                <div className="card" style={{cursor:'pointer',border:'2px solid #00bcd4',borderRadius:16,boxShadow:'0 2px 12px #e0e0e0',position:'relative'}}
+                  onClick={() => {
+                    // منطق ذكي للتحويل حسب نوع العنصر
+                    if (property.type === 'ad' || property.isAd || property.adId || property.collection === 'ads') {
+                      // إعلان
+                      if (property.id) {
+                        window.location.href = `/ads/${property.id}`;
+                      }
+                    } else {
+                      // وحدة عقارية
+                      if (property.id) {
+                        window.location.href = `/property/${property.id}`;
+                      }
+                    }
+                  }}
+                >
                   <img src={property.image} alt={property.title} style={{width: '100%', height: 140, objectFit: 'cover', borderRadius: 12}} />
                   <div className="property-details">
                     <h3 style={{color:'#00bcd4',fontWeight:'bold'}}>{property.title}</h3>
