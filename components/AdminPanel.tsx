@@ -205,6 +205,8 @@ export default function AdminPanel() {
   // الخلفيات
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [bgDialog, setBgDialog] = useState(false);
+  // متغير مؤقت لحفظ ملف الخلفية قبل الرفع
+  const [selectedBgFile, setSelectedBgFile] = useState<File | null>(null);
   // السلايدر
   const [slider, setSlider] = useState<string[]>([]);
   const [sliderDialog, setSliderDialog] = useState(false);
@@ -463,11 +465,26 @@ export default function AdminPanel() {
                 </Box>
                 {/* صور الوحدة */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-                  <ImageUploader
-                    images={unitForm.images || []}
-                    onAdd={(urls: string[]) => setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }))}
-                    onRemove={(idx: number) => setUnitForm((f: Unit) => ({ ...f, images: (f.images || []).filter((_: string, i: number) => i !== idx) }))}
-                  />
+                    <ImageUploader
+                      images={unitForm.images || []}
+                      onAdd={async (urls: string[]) => {
+                        // تحديث الصور مباشرة في الوحدة عند الإضافة
+                        setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
+                        if (editingUnit) {
+                          await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: [...(unitForm.images || []), ...urls] });
+                          setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: [...(unitForm.images || []), ...urls] } : u));
+                        }
+                      }}
+                      onRemove={async (idx: number) => {
+                        // حذف الصورة من الوحدة مباشرة
+                        const newImages = (unitForm.images || []).filter((_: string, i: number) => i !== idx);
+                        setUnitForm((f: Unit) => ({ ...f, images: newImages }));
+                        if (editingUnit) {
+                          await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: newImages });
+                          setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: newImages } : u));
+                        }
+                      }}
+                    />
                 </Box>
                 {/* صور بانوراما */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
@@ -558,8 +575,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
           <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {employees.map((emp: any) => (
-              <Grid item xs={12} sm={6} md={4} key={emp.id}>
-                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+              <Box key={emp.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
                     <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{emp.username}</Typography>
                     <Typography variant="body2" sx={{color:'#fff'}}>الدور: {emp.role}</Typography>
@@ -567,24 +584,25 @@ export default function AdminPanel() {
                   <CardActions>
                     <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الموظف؟`, onConfirm: async () => {
+                      if (!emp.id) return;
                       await deleteDoc(doc(db, 'employees', emp.id));
                       setEmployees(employees.filter((e: any) => e.id !== emp.id));
                       setSnackbar({open: true, message: 'تم حذف الموظف بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل موظف */}
           <Dialog open={employeeDialog} onClose={() => setEmployeeDialog(false)} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingEmployee ? 'تعديل موظف' : 'إضافة موظف'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm(f => ({ ...f, username: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="كلمة المرور" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm(f => ({ ...f, password: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm((f: any) => ({ ...f, username: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="كلمة المرور" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm((f: any) => ({ ...f, password: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
               <FormControl fullWidth sx={{mt:2}}>
                 <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>الدور</InputLabel>
-                <Select value={employeeForm.role} onChange={e => setEmployeeForm(f => ({ ...f, role: e.target.value }))} label="الدور" sx={{color:'#fff'}}>
+                <Select value={employeeForm.role} onChange={e => setEmployeeForm((f: any) => ({ ...f, role: e.target.value }))} label="الدور" sx={{color:'#fff'}}>
                   <MenuItem value="موظف">موظف</MenuItem>
                   <MenuItem value="مدير">مدير</MenuItem>
                   <MenuItem value="مطور">مطور</MenuItem>
@@ -620,8 +638,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
           <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {developers.map((dev: Developer) => (
-              <Grid item xs={12} sm={6} md={4} key={dev.id}>
-                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+              <Box key={dev.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
                     <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{dev.name}</Typography>
                     <Typography variant="body2" sx={{color:'#fff'}}>الدولة: {dev.country}</Typography>
@@ -630,29 +648,30 @@ export default function AdminPanel() {
                   <CardActions>
                     <IconButton onClick={() => { setEditingDev(dev); setDevForm(dev); setDevDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف المطور؟`, onConfirm: async () => {
+                      if (!dev.id) return;
                       await deleteDoc(doc(db, 'developers', dev.id));
                       setDevelopers(developers.filter((d: Developer) => d.id !== dev.id));
                       setSnackbar({open: true, message: 'تم حذف المطور بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل مطور */}
           <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDevDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
               <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
                 onClick={async () => {
-                  if (editingDev) {
+                  if (editingDev && editingDev.id) {
                     await updateDoc(doc(db, 'developers', editingDev.id), devForm);
                     setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, ...devForm } : d));
                     setSnackbar({open: true, message: 'تم تحديث المطور بنجاح', severity: 'success'});
@@ -677,8 +696,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
           <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {compounds.map((comp: Compound) => (
-              <Grid item xs={12} sm={6} md={4} key={comp.id}>
-                <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+              <Box key={comp.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardContent>
                     <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{comp.name}</Typography>
                     <Typography variant="body2" sx={{color:'#fff'}}>المطور: {comp.developer}</Typography>
@@ -687,30 +706,31 @@ export default function AdminPanel() {
                   <CardActions>
                     <IconButton onClick={() => { setEditingCompound(comp); setCompoundForm(comp); setCompoundDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
                     <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الكمباوند؟`, onConfirm: async () => {
+                      if (!comp.id) return;
                       await deleteDoc(doc(db, 'compounds', comp.id));
                       setCompounds(compounds.filter((c: Compound) => c.id !== comp.id));
                       setSnackbar({open: true, message: 'تم حذف الكمباوند بنجاح', severity: 'success'});
                     }})}><Delete /></IconButton>
                   </CardActions>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار إضافة/تعديل كمباوند */}
           <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
+              <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
+              <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#00bcd4', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setCompoundDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
               <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
                 onClick={async () => {
-                  if (editingCompound) {
+                  if (editingCompound && editingCompound.id) {
                     await updateDoc(doc(db, 'compounds', editingCompound.id), compoundForm);
                     setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, ...compoundForm } : c));
                     setSnackbar({open: true, message: 'تم تحديث الكمباوند بنجاح', severity: 'success'});
@@ -742,8 +762,8 @@ export default function AdminPanel() {
           <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setBgDialog(true); }}>رفع خلفية جديدة</Button>
           <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
             {backgrounds.map((bg, i) => (
-              <Grid item xs={12} sm={6} md={4} key={i}>
-                <Card sx={{ position: 'relative', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
+              <Box key={i} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
+                <Card sx={{ position: 'relative', width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
                   <CardMedia image={bg} title={`خلفية ${i+1}`} sx={{ height: 180, borderRadius:4 }} />
                   <IconButton size="small" sx={{ position: 'absolute', top: 8, right: 8, bgcolor: '#00bcd4', color: '#181c2a', '&:hover': { bgcolor: '#00bcd4' } }} onClick={async (e) => {
                     e.stopPropagation();
@@ -761,109 +781,53 @@ export default function AdminPanel() {
                     <Delete />
                   </IconButton>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
           {/* حوار رفع خلفية جديدة */}
+          {/* تعريف متغيرات رفع الخلفية */}
           <Dialog open={bgDialog} onClose={() => setBgDialog(false)} maxWidth="sm" fullWidth>
             <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>رفع خلفية جديدة</DialogTitle>
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
               <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
                 {uploading ? <CircularProgress size={22} color="inherit" /> : 'اختر صورة الخلفية'}
-                <input type="file" hidden accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                <input type="file" hidden accept="image/*" capture="environment" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                   if (!e.target.files) return;
-                  setUploading(true);
                   const file = e.target.files[0] as File;
-                  try {
-                    const url = await uploadImage(file, 'backgrounds');
-                    setBackgrounds([...backgrounds, url]);
-                    setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
-                  } catch (err) {
-                    setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
-                  }
-                  setUploading(false);
+                  setSelectedBgFile(file);
                 }} />
               </Button>
+              {/* زر تأكيد/تحديث بعد اختيار الصورة */}
+              {selectedBgFile && (
+                <Button variant="contained" color="success" fullWidth sx={{mt:2, fontWeight:'bold'}} disabled={uploading}
+                  onClick={async () => {
+                    setUploading(true);
+                    try {
+                      const url = await uploadImage(selectedBgFile, 'backgrounds');
+                      setBackgrounds([...backgrounds, url]);
+                      setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
+                      setSelectedBgFile(null);
+                    } catch (err) {
+                      setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
+                    }
+                    setUploading(false);
+                  }}>
+                  تأكيد رفع الخلفية
+                </Button>
+              )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setBgDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
+              <Button onClick={() => { setBgDialog(false); setSelectedBgFile(null); }} sx={{fontWeight:'bold'}}>إلغاء</Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
-      {/* تبويب الشريط الكتابي */}
+      {/* إعدادات الشريط الكتابي (Marquee) */}
       {tab === 6 && (
         <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الشريط الكتابي</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setMarqueeDialog(true); }}>تعديل الشريط الكتابي</Button>
-          <Card sx={{ bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, p:2 }}>
-            <Typography variant="body1" sx={{color:'#00bcd4', fontWeight:'bold', mb:1}}>نصوص الشريط الكتابي:</Typography>
-            {marquee.texts.length === 0 ? (
-              <Typography variant="body2" sx={{color:'#bbb'}}>لا توجد نصوص حالياً.</Typography>
-            ) : (
-              <Box sx={{display:'flex',flexDirection:'column',gap:1}}>
-                {marquee.texts.map((text, i) => (
-                  <Typography key={i} variant="body2" sx={{color:'#fff', display:'flex', alignItems:'center', gap:1}}>
-                    <span>{i+1}.</span>
-                    <span>{text}</span>
-                  </Typography>
-                ))}
-              </Box>
-            )}
-          </Card>
-          {/* حوار تعديل الشريط الكتابي */}
-          <Dialog open={marqueeDialog} onClose={() => setMarqueeDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>تعديل الشريط الكتابي</DialogTitle>
-            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="نص الشريط الكتابي" fullWidth value={marquee.texts.join('; ')} onChange={e => {
-                const texts = e.target.value.split(';').map(t => t.trim()).filter(t => t);
-                setMarquee(f => ({ ...f, texts }));
-              }} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <FormControl fullWidth sx={{mt:2}}>
-                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>سرعة الحركة</InputLabel>
-                <Select value={marquee.speed.toString()} onChange={e => setMarquee(f => ({ ...f, speed: Number(e.target.value) }))} label="سرعة الحركة" sx={{color:'#fff'}}>
-                  <MenuItem value={10}>بطيء</MenuItem>
-                  <MenuItem value={30}>متوسط</MenuItem>
-                  <MenuItem value={50}>سريع</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth sx={{mt:2}}>
-                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>لون النص</InputLabel>
-                <Select value={marquee.color} onChange={e => setMarquee(f => ({ ...f, color: e.target.value }))} label="لون النص" sx={{color:'#fff'}}>
-                  <MenuItem value="#ff9800">برتقالي</MenuItem>
-                  <MenuItem value="#00bcd4">أزرق</MenuItem>
-                  <MenuItem value="#4caf50">أخضر</MenuItem>
-                  <MenuItem value="#f44336">أحمر</MenuItem>
-                  <MenuItem value="#fff">أبيض</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth sx={{mt:2}}>
-                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>حجم الخط</InputLabel>
-                <Select value={marquee.fontSize.toString()} onChange={e => setMarquee(f => ({ ...f, fontSize: Number(e.target.value) }))} label="حجم الخط" sx={{color:'#fff'}}>
-                  <MenuItem value={16}>صغير</MenuItem>
-                  <MenuItem value={20}>متوسط</MenuItem>
-                  <MenuItem value={24}>كبير</MenuItem>
-                </Select>
-              </FormControl>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setMarqueeDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
-              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
-                onClick={async () => {
-                  await updateDoc(doc(db, 'marquee', 'معلومات الشريط الكتابي'), {
-                    texts: marquee.texts,
-                    speed: marquee.speed,
-                    color: marquee.color,
-                    fontSize: marquee.fontSize,
-                  });
-                  setSnackbar({open: true, message: 'تم تحديث الشريط الكتابي بنجاح', severity: 'success'});
-                  setMarqueeDialog(false);
-                }}
-              >
-                تحديث الشريط الكتابي
-              </Button>
-            </DialogActions>
-          </Dialog>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إعدادات الشريط الكتابي</Typography>
+          {/* استيراد SettingsPanel */}
+          {React.createElement(require('./SettingsPanel').default)}
         </Box>
       )}
       {/* تبويب تواصل معنا */}
