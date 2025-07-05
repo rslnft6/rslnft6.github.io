@@ -797,23 +797,38 @@ export default function AdminPanel() {
                   setSelectedBgFile(file);
                 }} />
               </Button>
-              {/* زر تأكيد/تحديث بعد اختيار الصورة */}
+              {/* معاينة الصورة قبل الرفع */}
               {selectedBgFile && (
-                <Button variant="contained" color="success" fullWidth sx={{mt:2, fontWeight:'bold'}} disabled={uploading}
-                  onClick={async () => {
-                    setUploading(true);
-                    try {
-                      const url = await uploadImage(selectedBgFile, 'backgrounds');
-                      setBackgrounds([...backgrounds, url]);
-                      setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
-                      setSelectedBgFile(null);
-                    } catch (err) {
-                      setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
-                    }
-                    setUploading(false);
-                  }}>
-                  تأكيد رفع الخلفية
-                </Button>
+                <Box sx={{mt:2, mb:2, textAlign:'center'}}>
+                  <img src={URL.createObjectURL(selectedBgFile)} alt="معاينة الخلفية" style={{maxWidth:'100%', maxHeight:180, borderRadius:8, boxShadow:'0 2px 12px #00bcd4'}} />
+                  <Typography sx={{color:'#00bcd4', fontWeight:'bold', mt:1}}>معاينة الخلفية قبل الرفع</Typography>
+                  <Button variant="contained" color="success" fullWidth sx={{mt:2, fontWeight:'bold'}} disabled={uploading}
+                    onClick={async () => {
+                      setUploading(true);
+                      try {
+                        // التحقق من نوع وحجم الصورة
+                        if (!['image/jpeg','image/png','image/webp'].includes(selectedBgFile.type)) {
+                          setSnackbar({open:true, message:'الرجاء اختيار صورة بصيغة jpg أو png أو webp فقط', severity:'error'});
+                          setUploading(false);
+                          return;
+                        }
+                        if (selectedBgFile.size > 5*1024*1024) { // 5MB
+                          setSnackbar({open:true, message:'حجم الصورة كبير جداً (الحد الأقصى 5MB)', severity:'error'});
+                          setUploading(false);
+                          return;
+                        }
+                        const url = await uploadImage(selectedBgFile, 'backgrounds');
+                        setBackgrounds([...backgrounds, url]);
+                        setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
+                        setSelectedBgFile(null);
+                      } catch (err) {
+                        setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
+                      }
+                      setUploading(false);
+                    }}>
+                    تأكيد رفع الخلفية
+                  </Button>
+                </Box>
               )}
             </DialogContent>
             <DialogActions>
@@ -823,6 +838,7 @@ export default function AdminPanel() {
         </Box>
       )}
       {/* إعدادات الشريط الكتابي (Marquee) */}
+      {/* إبقاء شريط واحد فقط في الواجهة الرئيسية، وإلغاء التكرار */}
       {tab === 6 && (
         <Box mt={2}>
           <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إعدادات الشريط الكتابي</Typography>

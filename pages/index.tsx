@@ -382,7 +382,7 @@ export default function Home() {
           justifyContent:'center',
           padding:'0 0 48px 0',
         }}>
-          {/* الشريط الكتابي المتحرك فقط بدون مربع أو ظل */}
+          {/* الشريط الكتابي المتحرك فقط بدون تكرار */}
           <div style={{
             width:'100%',
             overflow:'hidden',
