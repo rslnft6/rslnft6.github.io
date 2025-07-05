@@ -494,10 +494,25 @@ export default function AdminPanel() {
                       if (!e.target.files) return;
                       setUploading(true);
                       const files = Array.from(e.target.files) as File[];
+                      let urls: string[] = [];
                       try {
-                        const urls = await Promise.all(files.map((file: File) => uploadImage(file, 'units/panorama')));
-                        setUnitForm((f: Unit) => ({ ...f, panorama: [...(f.panorama || []), ...urls] }));
-                        setSnackbar({open:true, message:'تم رفع صور البانوراما', severity:'success'});
+                        for (const file of files) {
+                          // تحقق من النوع والحجم
+                          if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+                            setSnackbar({open:true, message:'الرجاء اختيار صور بصيغة jpg أو png أو webp فقط', severity:'error'});
+                            continue;
+                          }
+                          if (file.size > 5*1024*1024) {
+                            setSnackbar({open:true, message:'حجم الصورة كبير جداً (الحد الأقصى 5MB)', severity:'error'});
+                            continue;
+                          }
+                          const url = await uploadImage(file, 'units/panorama');
+                          urls.push(url);
+                        }
+                        if (urls.length > 0) {
+                          setUnitForm((f: Unit) => ({ ...f, panorama: [...(f.panorama || []), ...urls] }));
+                          setSnackbar({open:true, message:`تم رفع ${urls.length} صورة بانوراما`, severity:'success'});
+                        }
                       } catch (err) {
                         setSnackbar({open:true, message:'فشل رفع صور البانوراما!', severity:'error'});
                       }
@@ -791,7 +806,7 @@ export default function AdminPanel() {
             <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
               <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
                 {uploading ? <CircularProgress size={22} color="inherit" /> : 'اختر صورة الخلفية'}
-                <input type="file" hidden accept="image/*" capture="environment" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                <input type="file" hidden accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                   if (!e.target.files) return;
                   const file = e.target.files[0] as File;
                   setSelectedBgFile(file);
@@ -838,14 +853,7 @@ export default function AdminPanel() {
         </Box>
       )}
       {/* إعدادات الشريط الكتابي (Marquee) */}
-      {/* إبقاء شريط واحد فقط في الواجهة الرئيسية، وإلغاء التكرار */}
-      {tab === 6 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إعدادات الشريط الكتابي</Typography>
-          {/* استيراد SettingsPanel */}
-          {React.createElement(require('./SettingsPanel').default)}
-        </Box>
-      )}
+      {/* تم إلغاء ظهور الشريط الكتابي في لوحة التحكم نهائيًا بناءً على طلبك */}
       {/* تبويب تواصل معنا */}
       {tab === 7 && (
         <Box mt={2}>
