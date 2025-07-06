@@ -111,7 +111,8 @@ function SmartSearch({ units, compounds, developers }: { units: any[], compounds
       }}
       renderInput={(params: any) => (
         <TextField {...params} label="بحث سريع (عنوان، مطور، كمباوند)" variant="outlined" sx={{ bgcolor:'#fff', borderRadius:2, minWidth:260 }} />
-      )}
+      )
+      }
       sx={{ minWidth: 260, maxWidth: 400, mx: 'auto', mb: 2 }}
     />
   );
@@ -568,7 +569,10 @@ export default function AdminPanel() {
               <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
                 disabled={uploading}
                 onClick={async () => {
-                  if (uploading) return;
+                  if (uploading) {
+                    setSnackbar({open:true, message:'يرجى الانتظار حتى انتهاء رفع الصور!', severity:'warning'});
+                    return;
+                  }
                   if (editingUnit) {
                     await updateDoc(doc(db, 'units', editingUnit.id!), unitForm);
                     setUnits(units.map(u => u.id === editingUnit.id ? { ...u, ...unitForm } : u));
