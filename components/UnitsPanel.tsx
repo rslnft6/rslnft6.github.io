@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../data/firebase';
 import { FaTrash, FaMapMarkerAlt, FaEdit, FaImages, FaUser, FaCheckCircle, FaBan, FaPlus } from 'react-icons/fa';
-import imageCompression from 'browser-image-compression';
+import ImageUploader from './ImageUploader';
 import { compounds } from '../data/compounds';
 import { developers } from '../data/developers';
 
@@ -70,9 +70,7 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
   const [editingId, setEditingId] = useState<string|null>(null);
   const [coOwners, setCoOwners] = useState<{name:string, share:number}[]>([]);
   const [auction, setAuction] = useState({ enabled: false, bids: [] as {user:string,amount:number}[], minBid: 0 });
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [showMap, setShowMap] = useState(false);
-  const [imagesSaved, setImagesSaved] = useState(true);
 
   useEffect(() => {
     const fetchUnits = async () => {
@@ -90,7 +88,6 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
     setForm({
       title: '', type: 'شقة', area: '', price: '', rooms: '', bathrooms: '', floors: '', hasGarden: false, hasPool: false, developerId: '', compound: '', employee: '', phone: '', whatsapp: '', lat: '', lng: '', images: [], vrUrl: '', panoramaUrl: '', model3dUrl: '', paymentType: '', finance: '', description: '', enabled: true
     });
-    setImageFiles([]);
     setCoOwners([]);
     setAuction({ enabled: false, bids: [], minBid: 0 });
     setEditingId(null);
@@ -100,22 +97,8 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
     e.preventDefault();
     setAdding(true);
     try {
-      let imageUrls: string[] = form.images as string[];
-      if (imageFiles.length > 0) {
-        const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const storage = getStorage();
-        imageUrls = [];
-        for (const file of imageFiles) {
-          const compressedFile = await imageCompression(file, { maxSizeMB: 0.4, maxWidthOrHeight: 900, useWebWorker: true });
-          const imgRef = ref(storage, `units/${Date.now()}_${file.name}`);
-          await uploadBytes(imgRef, compressedFile);
-          const url = await getDownloadURL(imgRef);
-          imageUrls.push(url);
-        }
-      }
       const data = {
         ...form,
-        images: imageUrls,
         hasGarden: !!form.hasGarden,
         hasPool: !!form.hasPool,
         coOwners: coOwnershipMode ? coOwners : undefined,
@@ -191,38 +174,14 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         <input value={form.vrUrl} onChange={e=>setForm(f=>({...f,vrUrl:e.target.value}))} placeholder="رابط VR" style={{padding:8,borderRadius:8}} />
         <input value={form.panoramaUrl} onChange={e=>setForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط بانوراما" style={{padding:8,borderRadius:8}} />
         <input value={form.model3dUrl} onChange={e=>setForm(f=>({...f,model3dUrl:e.target.value}))} placeholder="رابط نموذج 3D" style={{padding:8,borderRadius:8}} />
-        <input type="file" accept="image/*" multiple onChange={e=>{
-          setImageFiles(Array.from(e.target.files||[]));
-          setImagesSaved(false);
-        }} style={{minWidth:120}} disabled={!imagesSaved && imageFiles.length === 0} />
-        {imageFiles.length > 0 && !imagesSaved && (
-          <>
-            <div style={{display:'flex',gap:8,alignItems:'center',margin:'8px 0'}}>
-              {imageFiles.map((file,i)=>(
-                <img key={i} src={URL.createObjectURL(file)} alt="معاينة" style={{width:48,height:48,borderRadius:8,objectFit:'cover',border:'1.5px solid #00bcd4'}} />
-              ))}
-            </div>
-            <button type="button" style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 20px',fontWeight:'bold',marginBottom:8}} onClick={async()=>{
-              setAdding(true);
-              try {
-                const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-                const storage = getStorage();
-                let imageUrls: string[] = [];
-                for (const file of imageFiles) {
-                  const compressedFile = await imageCompression(file, { maxSizeMB: 0.4, maxWidthOrHeight: 900, useWebWorker: true });
-                  const imgRef = ref(storage, `units/${Date.now()}_${file.name}`);
-                  await uploadBytes(imgRef, compressedFile);
-                  const url = await getDownloadURL(imgRef);
-                  imageUrls.push(url);
-                }
-                setForm(f => ({ ...f, images: imageUrls }));
-                setImagesSaved(true);
-                setImageFiles([]);
-              } catch {}
-              setAdding(false);
-            }}>حفظ الصور</button>
-          </>
-        )}
+        <div style={{minWidth:120}}>
+          <ImageUploader
+            images={form.images}
+            onAdd={urls => setForm(f => ({ ...f, images: [...f.images, ...urls] }))}
+            onRemove={idx => setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }))}
+            multiple={true}
+          />
+        </div>
         {(form.vrUrl || form.panoramaUrl || form.model3dUrl) && (
           <div style={{display:'flex',gap:12,margin:'8px 0'}}>
             {form.vrUrl && <iframe src={form.vrUrl} title="VR" style={{width:120,height:80,borderRadius:8,border:'1.5px solid #00bcd4'}} />}
