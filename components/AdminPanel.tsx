@@ -278,6 +278,7 @@ export default function AdminPanel() {
           'الخلفيات',
           'تواصل معنا',
           'إدارة الصفحات',
+          'الشريط الكتابي',
         ];
         if (tab < 0 || tab >= tabLabels.length) setTab(0);
         return (
@@ -323,7 +324,71 @@ export default function AdminPanel() {
           <PagesEditor setSnackbar={setSnackbar} />
         </Box>
       )}
-      {/* باقي التبويبات كما هي (كل قسم داخل Card أو Box مع ظل وPadding) */}
+      {/* تبويب الشريط الكتابي */}
+      {tab === 8 && (
+        <Box mt={2}>
+          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إعدادات الشريط الكتابي</Typography>
+          <Box sx={{display:'flex',flexDirection:'column',gap:2,maxWidth:500,mx:'auto',bgcolor:'#23263a',p:3,borderRadius:4,boxShadow:8}}>
+            <TextField
+              label="نص الشريط الكتابي (يمكنك وضع أكثر من نص بفاصل الفاصلة ,)"
+              value={marquee.texts.join(',')}
+              onChange={e => setMarquee(m => ({...m, texts: e.target.value.split(',')}))}
+              InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }}
+              sx={{input:{color:'#fff',fontWeight:'bold',fontSize:18},label:{color:'#00bcd4'}}}
+              fullWidth
+            />
+            <Box sx={{display:'flex',gap:2}}>
+              <TextField
+                label="حجم الخط (px)"
+                type="number"
+                value={marquee.fontSize}
+                onChange={e => setMarquee(m => ({...m, fontSize: Number(e.target.value)}))}
+                InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }}
+                sx={{input:{color:'#fff'},label:{color:'#00bcd4'}}}
+                fullWidth
+              />
+              <TextField
+                label="سرعة الحركة (ثانية)"
+                type="number"
+                value={marquee.speed}
+                onChange={e => setMarquee(m => ({...m, speed: Number(e.target.value)}))}
+                InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }}
+                sx={{input:{color:'#fff'},label:{color:'#00bcd4'}}}
+                fullWidth
+              />
+            </Box>
+            <TextField
+              label="لون الخط (hex)"
+              value={marquee.color}
+              onChange={e => setMarquee(m => ({...m, color: e.target.value}))}
+              InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }}
+              sx={{input:{color:'#fff'},label:{color:'#00bcd4'}}}
+              fullWidth
+            />
+            <Button variant="contained" sx={{bgcolor:'#00bcd4',color:'#181c2a',fontWeight:'bold',mt:2}} onClick={async()=>{
+              // حفظ التغييرات في قاعدة البيانات
+              await updateDoc(doc(db, 'marquee', 'main'), marquee);
+              setSnackbar({open:true, message:'تم حفظ إعدادات الشريط الكتابي بنجاح', severity:'success'});
+            }}>حفظ التغييرات</Button>
+            <Box mt={2}>
+              <Typography sx={{color:'#bbb',mb:1}}>معاينة الشريط الكتابي:</Typography>
+              <div style={{
+                width:'100%',overflow:'hidden',background:'none',borderRadius:0,padding:0
+              }}>
+                <div style={{
+                  display:'inline-block',whiteSpace:'nowrap',animation:`marquee ${marquee.speed}s linear infinite`,
+                  color: marquee.color,fontWeight:'bold',fontSize: marquee.fontSize,fontFamily:'Cairo, Tahoma, Arial',letterSpacing:1,padding:'8px 0',minWidth:'100%'
+                }}>
+                  {marquee.texts && marquee.texts.length > 0 ?
+                    marquee.texts.map((txt,i)=>(<span key={i} style={{marginRight:40}}>{txt}</span>)) :
+                    <span>مرحباً بك في منصتنا العقارية!</span>
+                  }
+                </div>
+              </div>
+            </Box>
+          </Box>
+        </Box>
+      )}
       {/* تبويب الوحدات */}
       {tab === 0 && (
         <Box mt={2}>
