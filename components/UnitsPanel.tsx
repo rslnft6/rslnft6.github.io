@@ -120,7 +120,6 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
     setCoOwners(unit.coOwners || []);
     setAuction(unit.auction || { enabled: false, bids: [], minBid: 0 });
     setEditingId(unit.id);
-    setImageFiles([]);
   };
 
   const handleDelete = async (id: string) => {
