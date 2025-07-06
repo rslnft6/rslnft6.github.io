@@ -382,44 +382,7 @@ export default function Home() {
           justifyContent:'center',
           padding:'0 0 48px 0',
         }}>
-          {/* الشريط الكتابي المتحرك فقط بدون تكرار */}
-          <div style={{
-            width:'100%',
-            overflow:'hidden',
-            margin:'0 auto 0 auto',
-            direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
-            background: 'none',
-            borderRadius: 0,
-            padding: 0,
-          }}>
-            <div style={{
-              display:'inline-block',
-              whiteSpace:'nowrap',
-              animation:`marquee ${marquee.speed}s linear infinite`,
-              color: marquee.color,
-              fontWeight:'bold',
-              fontSize: marquee.fontSize,
-              fontFamily: marquee.fontFamily || 'Cairo, Tahoma, Arial, sans-serif',
-              letterSpacing: 1,
-              padding:'8px 0',
-              minWidth:'100%'
-            }}>
-              {marquee.texts && marquee.texts.length > 0 ?
-                marquee.texts.map((txt,i)=>{
-                  if (typeof txt === 'string') return <span key={i} style={{marginRight:40}}>{txt}</span>;
-                  if (typeof txt === 'object' && txt !== null) return <span key={i} style={{marginRight:40}}>{txt[i18n.language] || txt['ar'] || Object.values(txt)[0]}</span>;
-                  return null;
-                }) :
-                <span>مرحباً بك في منصتنا العقارية!</span>
-              }
-            </div>
-          </div>
-          <style>{`
-            @keyframes marquee {
-              0% { transform: translateX(100%); }
-              100% { transform: translateX(-100%); }
-            }
-          `}</style>
+          {/* تم حذف الشريط الكتابي هنا - الشريط يظهر الآن فقط من خلال MarqueeBar في _app.tsx */}
           {/* سلايدر الإعلانات أعلى الصفحة */}
           <div style={{width:'100%',overflow:'hidden',margin:'32px 0 8px 0',direction:'ltr'}}>
             <div style={{
