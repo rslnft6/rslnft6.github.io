@@ -34,6 +34,7 @@ import { doc as fsDoc, getDoc } from 'firebase/firestore';
 import { FaWhatsapp, FaPhone, FaFacebook, FaSnapchatGhost, FaTwitter, FaInstagram, FaTelegram, FaDiscord, FaEnvelope } from 'react-icons/fa';
 import { Menu, MenuItem } from '@mui/material';
 import CompoundsSlider from '../components/CompoundsSlider';
+import MarqueeBar from '../components/MarqueeBar';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -372,6 +373,7 @@ export default function Home() {
               <FaUserCircle size={26} color="#fff" />
             </button>
           </div>
+          <MarqueeBar />
         </div>
         <main style={{
           minHeight:'70vh',
