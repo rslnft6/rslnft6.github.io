@@ -137,7 +137,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, onAdd, onRemove, 
           type="file"
           accept="image/*"
           multiple={multiple}
-          capture="environment"
+          // تم حذف capture حتى يظهر مدير الملفات دائماً
           style={{ display: 'none' }}
           onChange={handleInputChange}
           disabled={uploading}

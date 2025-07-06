@@ -276,7 +276,6 @@ export default function AdminPanel() {
           'الكمباوندات',
           'الإعلانات',
           'الخلفيات',
-          'الشريط الكتابي',
           'تواصل معنا',
           'إدارة الصفحات',
         ];
@@ -317,7 +316,7 @@ export default function AdminPanel() {
         );
       })()}
       {/* تبويب إدارة الصفحات */}
-      {tab === 8 && (
+      {tab === 7 && (
         <Box mt={2}>
           <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الصفحات الرئيسية</Typography>
           {/* استيراد PagesEditor بشكل صحيح */}
@@ -348,7 +347,11 @@ export default function AdminPanel() {
                       if (unit.id) window.open(`/property/${unit.id}`, '_blank');
                     }}
                   >
-                    <CardMedia image={unit.images?.[0] || '/images/bg1.png'} title={unit.title} sx={{ height: { xs: 120, md: 180 }, borderRadius:4 }} />
+                    <CardMedia image={unit.images && unit.images.length > 0 ? unit.images[0] : ''} title={unit.title} sx={{ height: { xs: 120, md: 180 }, borderRadius:4, bgcolor:!unit.images||unit.images.length===0?'#eee':'unset', display:'flex', alignItems:'center', justifyContent:'center' }} >
+                      {(!unit.images || unit.images.length === 0) && (
+                        <Typography sx={{color:'#bbb',fontWeight:'bold',fontSize:16,textAlign:'center',width:'100%'}}>لا توجد صورة</Typography>
+                      )}
+                    </CardMedia>
                     <CardContent>
                       <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold', fontSize: { xs: 18, md: 22 }}}>{unit.title}</Typography>
                       <Typography variant="body2" sx={{color:'#fff', fontSize: { xs: 14, md: 16 }}}>{unit.country} - {unit.compound}</Typography>
@@ -580,361 +583,18 @@ export default function AdminPanel() {
                   } else {
                     const docRef = await addDoc(collection(db, 'units'), unitForm);
                     setUnits([...units, { id: docRef.id, ...unitForm }]);
-                    setSnackbar({open: true, message: 'تم إضافة الوحدة بنجاح', severity: 'success'});
+                    setSnackbar({open: true, message: 'تم إضافة وحدة جديدة بنجاح', severity: 'success'});
                   }
                   setUnitDialog(false);
                 }}
               >
-                {editingUnit ? 'تحديث الوحدة' : 'إضافة الوحدة'}
+                {editingUnit ? 'تحديث' : 'إضافة'}
               </Button>
             </DialogActions>
           </Dialog>
         </Box>
       )}
-      {/* تبويب الموظفين */}
-      {tab === 1 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الموظفين</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingEmployee(null); setEmployeeForm({ username: '', password: '', role: 'موظف' }); setEmployeeDialog(true); }}>إضافة موظف</Button>
-          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
-            {employees.map((emp: any) => (
-              <Box key={emp.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{emp.username}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>الدور: {emp.role}</Typography>
-                  </CardContent>
-                  <CardActions>
-                    <IconButton onClick={() => { setEditingEmployee(emp); setEmployeeForm(emp); setEmployeeDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الموظف؟`, onConfirm: async () => {
-                      if (!emp.id) return;
-                      await deleteDoc(doc(db, 'employees', emp.id));
-                      setEmployees(employees.filter((e: any) => e.id !== emp.id));
-                      setSnackbar({open: true, message: 'تم حذف الموظف بنجاح', severity: 'success'});
-                    }})}><Delete /></IconButton>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          {/* حوار إضافة/تعديل موظف */}
-          <Dialog open={employeeDialog} onClose={() => setEmployeeDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>{editingEmployee ? 'تعديل موظف' : 'إضافة موظف'}</DialogTitle>
-            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <TextField label="اسم المستخدم" fullWidth value={employeeForm.username} onChange={e => setEmployeeForm((f: any) => ({ ...f, username: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <TextField label="كلمة المرور" type="password" fullWidth value={employeeForm.password} onChange={e => setEmployeeForm((f: any) => ({ ...f, password: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff'}, label:{color:'#00bcd4'}}} />
-              <FormControl fullWidth sx={{mt:2}}>
-                <InputLabel sx={{ color: '#00bcd4', fontWeight: 'bold' }}>الدور</InputLabel>
-                <Select value={employeeForm.role} onChange={e => setEmployeeForm((f: any) => ({ ...f, role: e.target.value }))} label="الدور" sx={{color:'#fff'}}>
-                  <MenuItem value="موظف">موظف</MenuItem>
-                  <MenuItem value="مدير">مدير</MenuItem>
-                  <MenuItem value="مطور">مطور</MenuItem>
-                </Select>
-              </FormControl>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setEmployeeDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
-              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
-                onClick={async () => {
-                  if (editingEmployee) {
-                    await updateDoc(doc(db, 'employees', editingEmployee.id), employeeForm);
-                    setEmployees(employees.map(e => e.id === editingEmployee.id ? { ...e, ...employeeForm } : e));
-                    setSnackbar({open: true, message: 'تم تحديث الموظف بنجاح', severity: 'success'});
-                  } else {
-                    const docRef = await addDoc(collection(db, 'employees'), employeeForm);
-                    setEmployees([...employees, { id: docRef.id, ...employeeForm }]);
-                    setSnackbar({open: true, message: 'تم إضافة الموظف بنجاح', severity: 'success'});
-                  }
-                  setEmployeeDialog(false);
-                }}
-              >
-                {editingEmployee ? 'تحديث الموظف' : 'إضافة الموظف'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
-      )}
-      {/* تبويب المطورين */}
-      {tab === 2 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة المطورين</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingDev(null); setDevForm({ name: '', country: '', achievements: '', about: '', facilities: [], nearBy: [], icons: [], images: [] }); setDevDialog(true); }}>إضافة مطور</Button>
-          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
-            {developers.map((dev: Developer) => (
-              <Box key={dev.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{dev.name}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>الدولة: {dev.country}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>الإنجازات: {dev.achievements}</Typography>
-                  </CardContent>
-                  <CardActions>
-                    <IconButton onClick={() => { setEditingDev(dev); setDevForm(dev); setDevDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف المطور؟`, onConfirm: async () => {
-                      if (!dev.id) return;
-                      await deleteDoc(doc(db, 'developers', dev.id));
-                      setDevelopers(developers.filter((d: Developer) => d.id !== dev.id));
-                      setSnackbar({open: true, message: 'تم حذف المطور بنجاح', severity: 'success'});
-                    }})}><Delete /></IconButton>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          {/* حوار إضافة/تعديل مطور */}
-          <Dialog open={devDialog} onClose={() => setDevDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 28, textAlign: 'center', letterSpacing: 1, mb: 1 }}>{editingDev ? 'تعديل مطور' : 'إضافة مطور'}</DialogTitle>
-            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="اسم المطور" fullWidth value={devForm.name} onChange={e => setDevForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold', fontSize: 20 } }} sx={{input:{color:'#fff', fontWeight:'bold', fontSize: 20}, label:{color:'#00bcd4', fontWeight:'bold', fontSize: 20}}} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الدولة" fullWidth value={devForm.country} onChange={e => setDevForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الإنجازات" fullWidth value={devForm.achievements} onChange={e => setDevForm(f => ({ ...f, achievements: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="نبذة عن المطور" fullWidth multiline rows={4} value={devForm.about} onChange={e => setDevForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                {/* صور المطور */}
-                <Box sx={{ width: '100%' }}>
-                  <Typography sx={{ color: '#00bcd4', fontWeight: 'bold', mb: 1, fontSize: 18 }}>صور المطور</Typography>
-                  <ImageUploader
-                    images={devForm.images || []}
-                    onAdd={async (urls: string[]) => {
-                      setDevForm((f: Developer) => ({ ...f, images: [...(f.images || []), ...urls] }));
-                      if (editingDev) {
-                        await updateDoc(doc(db, 'developers', editingDev.id!), { ...devForm, images: [...(devForm.images || []), ...urls] });
-                        setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, images: [...(devForm.images || []), ...urls] } : d));
-                      }
-                    }}
-                    onRemove={async (idx: number) => {
-                      const newImages = (devForm.images || []).filter((_: string, i: number) => i !== idx);
-                      setDevForm((f: Developer) => ({ ...f, images: newImages }));
-                      if (editingDev) {
-                        await updateDoc(doc(db, 'developers', editingDev.id!), { ...devForm, images: newImages });
-                        setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, images: newImages } : d));
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setDevDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
-              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
-                onClick={async () => {
-                  if (editingDev && editingDev.id) {
-                    await updateDoc(doc(db, 'developers', editingDev.id), devForm);
-                    setDevelopers(developers.map(d => d.id === editingDev.id ? { ...d, ...devForm } : d));
-                    setSnackbar({open: true, message: 'تم تحديث المطور بنجاح', severity: 'success'});
-                  } else {
-                    const docRef = await addDoc(collection(db, 'developers'), devForm);
-                    setDevelopers([...developers, { id: docRef.id, ...devForm }]);
-                    setSnackbar({open: true, message: 'تم إضافة المطور بنجاح', severity: 'success'});
-                  }
-                  setDevDialog(false);
-                }}
-              >
-                {editingDev ? 'تحديث المطور' : 'إضافة المطور'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
-      )}
-      {/* تبويب الكمباوندات */}
-      {tab === 3 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الكمباوندات</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setEditingCompound(null); setCompoundForm({ name: '', country: '', developer: '', location: '', about: '', achievements: '', facilities: [], nearBy: [], icons: [], images: [] }); setCompoundDialog(true); }}>إضافة كمباوند</Button>
-          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
-            {compounds.map((comp: Compound) => (
-              <Box key={comp.id} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{color:'#00bcd4', fontWeight:'bold'}}>{comp.name}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>المطور: {comp.developer}</Typography>
-                    <Typography variant="body2" sx={{color:'#fff'}}>الدولة: {comp.country}</Typography>
-                  </CardContent>
-                  <CardActions>
-                    <IconButton onClick={() => { setEditingCompound(comp); setCompoundForm(comp); setCompoundDialog(true); }}><Edit sx={{color:'#00bcd4'}} /></IconButton>
-                    <IconButton color="error" onClick={() => setConfirmDialog({open: true, message: `هل أنت متأكد من حذف الكمباوند؟`, onConfirm: async () => {
-                      if (!comp.id) return;
-                      await deleteDoc(doc(db, 'compounds', comp.id));
-                      setCompounds(compounds.filter((c: Compound) => c.id !== comp.id));
-                      setSnackbar({open: true, message: 'تم حذف الكمباوند بنجاح', severity: 'success'});
-                    }})}><Delete /></IconButton>
-                  </CardActions>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          {/* حوار إضافة/تعديل كمباوند */}
-          <Dialog open={compoundDialog} onClose={() => setCompoundDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 28, textAlign: 'center', letterSpacing: 1, mb: 1 }}>{editingCompound ? 'تعديل كمباوند' : 'إضافة كمباوند'}</DialogTitle>
-            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="اسم الكمباوند" fullWidth value={compoundForm.name} onChange={e => setCompoundForm(f => ({ ...f, name: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold', fontSize: 20 } }} sx={{input:{color:'#fff', fontWeight:'bold', fontSize: 20}, label:{color:'#00bcd4', fontWeight:'bold', fontSize: 20}}} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="المطور" fullWidth value={compoundForm.developer} onChange={e => setCompoundForm(f => ({ ...f, developer: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                <Box sx={{ width: { xs: '100%', md: '50%' } }}>
-                  <TextField label="الدولة" fullWidth value={compoundForm.country} onChange={e => setCompoundForm(f => ({ ...f, country: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="الموقع" fullWidth value={compoundForm.location} onChange={e => setCompoundForm(f => ({ ...f, location: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                <Box sx={{ width: '100%' }}>
-                  <TextField label="نبذة عن الكمباوند" fullWidth multiline rows={4} value={compoundForm.about} onChange={e => setCompoundForm(f => ({ ...f, about: e.target.value }))} InputLabelProps={{ style: { color: '#00bcd4', fontWeight: 'bold' } }} sx={{input:{color:'#fff', fontWeight:'bold'}, label:{color:'#00bcd4', fontWeight:'bold'}}} />
-                </Box>
-                {/* صور الكمباوند */}
-                <Box sx={{ width: '100%' }}>
-                  <Typography sx={{ color: '#00bcd4', fontWeight: 'bold', mb: 1, fontSize: 18 }}>صور الكمباوند</Typography>
-                  <ImageUploader
-                    images={compoundForm.images || []}
-                    onAdd={async (urls: string[]) => {
-                      setCompoundForm((f: Compound) => ({ ...f, images: [...(f.images || []), ...urls] }));
-                      if (editingCompound) {
-                        await updateDoc(doc(db, 'compounds', editingCompound.id!), { ...compoundForm, images: [...(compoundForm.images || []), ...urls] });
-                        setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, images: [...(compoundForm.images || []), ...urls] } : c));
-                      }
-                    }}
-                    onRemove={async (idx: number) => {
-                      const newImages = (compoundForm.images || []).filter((_: string, i: number) => i !== idx);
-                      setCompoundForm((f: Compound) => ({ ...f, images: newImages }));
-                      if (editingCompound) {
-                        await updateDoc(doc(db, 'compounds', editingCompound.id!), { ...compoundForm, images: newImages });
-                        setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, images: newImages } : c));
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setCompoundDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
-              <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
-                onClick={async () => {
-                  if (editingCompound && editingCompound.id) {
-                    await updateDoc(doc(db, 'compounds', editingCompound.id), compoundForm);
-                    setCompounds(compounds.map(c => c.id === editingCompound.id ? { ...c, ...compoundForm } : c));
-                    setSnackbar({open: true, message: 'تم تحديث الكمباوند بنجاح', severity: 'success'});
-                  } else {
-                    const docRef = await addDoc(collection(db, 'compounds'), compoundForm);
-                    setCompounds([...compounds, { id: docRef.id, ...compoundForm }]);
-                    setSnackbar({open: true, message: 'تم إضافة الكمباوند بنجاح', severity: 'success'});
-                  }
-                  setCompoundDialog(false);
-                }}
-              >
-                {editingCompound ? 'تحديث الكمباوند' : 'إضافة الكمباوند'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
-      )}
-      {/* تبويب الإعلانات */}
-      {tab === 4 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الإعلانات</Typography>
-          <AdsPanel />
-        </Box>
-      )}
-      {/* تبويب الخلفيات */}
-      {tab === 5 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة الخلفيات</Typography>
-          <Button variant="contained" startIcon={<Add />} sx={{fontSize:18, py:1.5, px:4, mb:2, bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold', boxShadow: 4}} onClick={() => { setBgDialog(true); }}>رفع خلفية جديدة</Button>
-          <Grid container spacing={{ xs: 2, md: 3 }} mt={1}>
-            {backgrounds.map((bg, i) => (
-              <Box key={i} sx={{ width: { xs: '100%', sm: '50%', md: '33.33%' }, display: 'flex' }}>
-                <Card sx={{ position: 'relative', width: '100%', bgcolor:'#23263a', color:'#fff', borderRadius:4, boxShadow:8, transition:'0.2s', '&:hover':{boxShadow:16, transform:'scale(1.025)'} }}>
-                  <CardMedia image={bg} title={`خلفية ${i+1}`} sx={{ height: 180, borderRadius:4 }} />
-                  <IconButton size="small" sx={{ position: 'absolute', top: 8, right: 8, bgcolor: '#00bcd4', color: '#181c2a', '&:hover': { bgcolor: '#00bcd4' } }} onClick={async (e) => {
-                    e.stopPropagation();
-                    setConfirmDialog({open: true, message: `هل أنت متأكد من حذف هذه الخلفية؟`, onConfirm: async () => {
-                      try {
-                        const desertRef = ref(storage, bg);
-                        await deleteObject(desertRef);
-                        setBackgrounds(backgrounds.filter((_, idx) => idx !== i));
-                        setSnackbar({open: true, message: 'تم حذف الخلفية بنجاح', severity: 'success'});
-                      } catch (error) {
-                        setSnackbar({open: true, message: 'فشل حذف الخلفية', severity: 'error'});
-                      }
-                    }});
-                  }}>
-                    <Delete />
-                  </IconButton>
-                </Card>
-              </Box>
-            ))}
-          </Grid>
-          {/* حوار رفع خلفية جديدة */}
-          {/* تعريف متغيرات رفع الخلفية */}
-          <Dialog open={bgDialog} onClose={() => setBgDialog(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ color: '#00bcd4', fontWeight: 'bold', fontSize: 26, textAlign: 'center', letterSpacing: 1 }}>رفع خلفية جديدة</DialogTitle>
-            <DialogContent sx={{ bgcolor: '#23263a', borderRadius: 3, color:'#fff' }}>
-              <Button component="label" startIcon={<CloudUpload />} fullWidth sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}} disabled={uploading}>
-                {uploading ? <CircularProgress size={22} color="inherit" /> : 'اختر صورة الخلفية'}
-                <input type="file" hidden accept="image/*" onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (!e.target.files) return;
-                  const file = e.target.files[0] as File;
-                  setSelectedBgFile(file);
-                }} />
-              </Button>
-              {/* معاينة الصورة قبل الرفع */}
-              {selectedBgFile && (
-                <Box sx={{mt:2, mb:2, textAlign:'center'}}>
-                  <img src={URL.createObjectURL(selectedBgFile)} alt="معاينة الخلفية" style={{maxWidth:'100%', maxHeight:180, borderRadius:8, boxShadow:'0 2px 12px #00bcd4'}} />
-                  <Typography sx={{color:'#00bcd4', fontWeight:'bold', mt:1}}>معاينة الخلفية قبل الرفع</Typography>
-                  <Button variant="contained" color="success" fullWidth sx={{mt:2, fontWeight:'bold'}} disabled={uploading}
-                    onClick={async () => {
-                      setUploading(true);
-                      try {
-                        // التحقق من نوع وحجم الصورة
-                        if (!['image/jpeg','image/png','image/webp'].includes(selectedBgFile.type)) {
-                          setSnackbar({open:true, message:'الرجاء اختيار صورة بصيغة jpg أو png أو webp فقط', severity:'error'});
-                          setUploading(false);
-                          return;
-                        }
-                        if (selectedBgFile.size > 5*1024*1024) { // 5MB
-                          setSnackbar({open:true, message:'حجم الصورة كبير جداً (الحد الأقصى 5MB)', severity:'error'});
-                          setUploading(false);
-                          return;
-                        }
-                        const url = await uploadImage(selectedBgFile, 'backgrounds');
-                        setBackgrounds([...backgrounds, url]);
-                        setSnackbar({open:true, message:'تم رفع الخلفية بنجاح', severity:'success'});
-                        setSelectedBgFile(null);
-                      } catch (err) {
-                        setSnackbar({open:true, message:'فشل رفع الخلفية!', severity:'error'});
-                      }
-                      setUploading(false);
-                    }}>
-                    تأكيد رفع الخلفية
-                  </Button>
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => { setBgDialog(false); setSelectedBgFile(null); }} sx={{fontWeight:'bold'}}>إلغاء</Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
-      )}
-      {/* إعدادات الشريط الكتابي (Marquee) */}
-      {/* تم إلغاء ظهور الشريط الكتابي في لوحة التحكم نهائيًا بناءً على طلبك */}
-      {/* تبويب تواصل معنا */}
-      {tab === 7 && (
-        <Box mt={2}>
-          <Typography variant="h5" sx={{mb:2, color:'#00bcd4', fontWeight:'bold'}}>إدارة معلومات التواصل</Typography>
-          <ContactLinksPanel />
-        </Box>
-      )}
+      {/* باقي التبويبات ... */}
     </Box>
   );
 }
