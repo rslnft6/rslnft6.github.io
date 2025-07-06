@@ -373,6 +373,7 @@ export default function Home() {
               <FaUserCircle size={26} color="#fff" />
             </button>
           </div>
+          {/* الشريط الكتابي أسفل الأزرار مباشرة */}
           <MarqueeBar />
         </div>
         <main style={{

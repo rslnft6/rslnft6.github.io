@@ -543,11 +543,11 @@ export default function AdminPanel() {
                   <ImageUploader
                     images={unitForm.images || []}
                     onAdd={async (urls: string[]) => {
-                      setUnitForm((f: Unit) => ({ ...f, images: [...(f.images || []), ...urls] }));
-                      if (editingUnit) {
-                        await updateDoc(doc(db, 'units', editingUnit.id!), { ...unitForm, images: [...(unitForm.images || []), ...urls] });
-                        setUnits(units.map(u => u.id === editingUnit.id ? { ...u, images: [...(unitForm.images || []), ...urls] } : u));
-                      }
+                      setUnitForm((f: Unit) => {
+                        const newImages = [...(f.images || []), ...urls];
+                        return { ...f, images: newImages };
+                      });
+                      // لا يتم الحفظ في فايرستور هنا، فقط عند الضغط على زر إضافة/تحديث
                     }}
                     onRemove={async (idx: number) => {
                       const newImages = (unitForm.images || []).filter((_: string, i: number) => i !== idx);
@@ -635,10 +635,14 @@ export default function AdminPanel() {
             <DialogActions>
               <Button onClick={() => setUnitDialog(false)} sx={{fontWeight:'bold'}}>إلغاء</Button>
               <Button variant="contained" sx={{bgcolor:'#00bcd4', color:'#181c2a', fontWeight:'bold'}}
-                disabled={uploading}
+                disabled={uploading || unitForm.images.length === 0}
                 onClick={async () => {
                   if (uploading) {
                     setSnackbar({open:true, message:'يرجى الانتظار حتى انتهاء رفع الصور!', severity:'warning'});
+                    return;
+                  }
+                  if (unitForm.images.length === 0) {
+                    setSnackbar({open:true, message:'يرجى رفع صورة واحدة على الأقل للوحدة!', severity:'error'});
                     return;
                   }
                   if (editingUnit) {
