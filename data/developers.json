@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "name": "شركة الأهلي صبور",
+    "country": "مصر",
+    "bio": "من أكبر شركات التطوير العقاري في مصر، لها العديد من المشاريع الناجحة.",
+    "achievements": "كمبوند ذا سيتي أوف أوديسيا، كمبوند جرين سكوير، كمبوند أمواج.",
+    "mainImagesUrls": ["https://upload.wikimedia.org/wikipedia/commons/6/6e/Ahly_Sabbour_Logo.png"],
+    "projects": "ذا سيتي أوف أوديسيا، أمواج، جرين سكوير",
+    "projectImagesUrls": ["https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"]
+  },
+  {
+    "id": "2",
+    "name": "شركة إعمار مصر",
+    "country": "مصر",
+    "bio": "إحدى أكبر شركات التطوير العقاري في الشرق الأوسط.",
+    "achievements": "كمبوند ميفيدا، أب تاون كايرو، مراسي.",
+    "mainImagesUrls": ["https://upload.wikimedia.org/wikipedia/commons/2/2d/Emaar_Logo.png"],
+    "projects": "ميفيدا، أب تاون كايرو، مراسي",
+    "projectImagesUrls": ["https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"]
+  }
+]

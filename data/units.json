@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "title": "شقة فاخرة في التجمع الخامس",
+    "type": "شقة",
+    "details": "شقة 3 غرف وصالة، تشطيب سوبر لوكس، قريبة من الخدمات.",
+    "rooms": "3",
+    "baths": "2",
+    "contact": "01000000000",
+    "location": "القاهرة الجديدة",
+    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
+    "panorama": "https://example.com/panorama1",
+    "model3d": "https://example.com/model3d1"
+  },
+  {
+    "id": "2",
+    "title": "فيلا مستقلة في الشيخ زايد",
+    "type": "فيلا",
+    "details": "فيلا 5 غرف وحديقة خاصة، بالقرب من مول العرب.",
+    "rooms": "5",
+    "baths": "4",
+    "contact": "01111111111",
+    "location": "الشيخ زايد",
+    "image": "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80",
+    "panorama": "https://example.com/panorama2",
+    "model3d": "https://example.com/model3d2"
+  }
+]

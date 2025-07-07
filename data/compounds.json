@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "name": "ذا سيتي أوف أوديسيا",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Ahly_Sabbour_Logo.png",
+    "developer": "شركة الأهلي صبور",
+    "city": "القاهرة الجديدة",
+    "country": "مصر",
+    "description": "كمبوند متكامل الخدمات في قلب القاهرة الجديدة.",
+    "images": ["https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80"],
+    "facilities": "نادي رياضي، مول تجاري، مدارس دولية، مساحات خضراء.",
+    "lat": 30.0305,
+    "lng": 31.4913
+  },
+  {
+    "id": "2",
+    "name": "ميفيدا",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Emaar_Logo.png",
+    "developer": "شركة إعمار مصر",
+    "city": "القاهرة الجديدة",
+    "country": "مصر",
+    "description": "كمبوند فاخر من تطوير إعمار مصر.",
+    "images": ["https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"],
+    "facilities": "مناطق ترفيهية، مدارس، مولات، مساحات خضراء.",
+    "lat": 30.0186,
+    "lng": 31.4622
+  }
+]

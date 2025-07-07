@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { db } from '../data/firebase';
-import { collection, addDoc, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+npm install -D imagemin imagemin-mozjpeg imagemin-pngquant
+npx imagemin public/images/units/* --out-dir=public/images/units/ -p=imagemin-mozjpeg -p=imagemin-pngquantimport { useEffect, useState } from 'react';
+// import { db } from '../data/firebase';
+// import { collection, addDoc, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 console.log('=== DevPanel.tsx Mounted ===');
 
 // الحقول الموسعة للوحدة العقارية
@@ -25,18 +26,20 @@ const DevPanel: React.FC = () => {
   const [error, setError] = useState<string|null>(null);
   const [success, setSuccess] = useState<string|null>(null);
 
-  // جلب الوحدات بشكل لحظي
+  // جلب الوحدات من LocalStorage
   useEffect(() => {
     setLoading(true);
-    const unsub = onSnapshot(collection(db, 'units'), (snapshot) => {
-      setUnits(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    }, (err) => {
-      setError('خطأ في جلب البيانات: ' + err.message);
-      setLoading(false);
-    });
-    return () => unsub();
+    const localUnits = localStorage.getItem('units');
+    if (localUnits) {
+      setUnits(JSON.parse(localUnits));
+    }
+    setLoading(false);
   }, []);
+
+  // حفظ الوحدات في LocalStorage عند أي تغيير
+  useEffect(() => {
+    localStorage.setItem('units', JSON.stringify(units));
+  }, [units]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -47,7 +50,7 @@ const DevPanel: React.FC = () => {
     if (!form.title || !form.type || !form.details) return setError('يرجى ملء جميع الحقول الأساسية');
     setLoading(true);
     try {
-      await addDoc(collection(db, 'units'), form);
+      setUnits(prev => [...prev, { ...form, id: Date.now().toString() }]);
       setForm(initialForm);
       setSuccess('تمت إضافة الوحدة بنجاح!');
       setError(null);
@@ -61,7 +64,7 @@ const DevPanel: React.FC = () => {
   const handleDelete = async (id: string) => {
     setLoading(true);
     try {
-      await deleteDoc(doc(db, 'units', id));
+      setUnits(prev => prev.filter(u => u.id !== id));
       setSuccess('تم حذف الوحدة بنجاح!');
       setError(null);
     } catch (err: any) {
