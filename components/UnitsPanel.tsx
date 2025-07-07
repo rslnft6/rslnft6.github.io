@@ -166,9 +166,10 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
         <input value={form.whatsapp} onChange={e=>setForm(f=>({...f,whatsapp:e.target.value}))} placeholder="واتساب" style={{padding:8,borderRadius:8}} />
         <textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="وصف الوحدة/مميزات إضافية" style={{padding:8,borderRadius:8,minWidth:220,minHeight:48,flex:1}} />
         <div style={{display:'flex',alignItems:'center',gap:4}}>
-          <input value={form.lat} onChange={e=>setForm(f=>({...f,lat:e.target.value}))} placeholder="خط العرض (lat)" style={{padding:8,borderRadius:8}} />
-          <input value={form.lng} onChange={e=>setForm(f=>({...f,lng:e.target.value}))} placeholder="خط الطول (lng)" style={{padding:8,borderRadius:8}} />
-          <button type="button" onClick={()=>setShowMap(true)} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 12px',fontWeight:'bold'}}>اختر من الخريطة</button>
+          <button type="button" onClick={()=>setShowMap(true)} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 12px',fontWeight:'bold'}}>اختر الموقع من الخريطة</button>
+          {form.lat && form.lng && (
+            <span style={{color:'#00bcd4',fontWeight:'bold',marginRight:8}}>الموقع: {form.lat}, {form.lng}</span>
+          )}
         </div>
         <input value={form.vrUrl} onChange={e=>setForm(f=>({...f,vrUrl:e.target.value}))} placeholder="رابط VR" style={{padding:8,borderRadius:8}} />
         <input value={form.panoramaUrl} onChange={e=>setForm(f=>({...f,panoramaUrl:e.target.value}))} placeholder="رابط بانوراما" style={{padding:8,borderRadius:8}} />
@@ -256,17 +257,22 @@ const UnitsPanel: React.FC<{coOwnershipMode?: boolean, auctionMode?: boolean}> =
       )}
       {showMap && (
         <div style={{position:'fixed',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.8)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{background:'#fff',borderRadius:16,overflow:'hidden',width:'90%',maxWidth:800}}>
-            <div style={{padding:16,background:'#00bcd4',color:'#fff',fontWeight:'bold',fontSize:18}}>اختر موقع الوحدة على الخريطة</div>
-            <div style={{position:'relative',width:'100%',paddingTop:'56.25%'}}>
-              <iframe src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${form.lat},${form.lng}`} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',border:'none'}} allowFullScreen />
+          <div style={{background:'#fff',borderRadius:16,overflow:'hidden',width:'90%',maxWidth:600,padding:24}}>
+            <div style={{padding:8,background:'#00bcd4',color:'#fff',fontWeight:'bold',fontSize:18,borderRadius:8,marginBottom:12}}>حدد موقع الوحدة على الخريطة</div>
+            <div style={{width:'100%',height:360}}>
+              {/* MapPicker */}
+              {typeof window !== 'undefined' && (
+                require('./MapPicker').default({
+                  lat: form.lat ? Number(form.lat) : 30.0444,
+                  lng: form.lng ? Number(form.lng) : 31.2357,
+                  onChange: (lat: number, lng: number) => setForm(f => ({ ...f, lat: String(lat), lng: String(lng) })),
+                  height: 340
+                })
+              )}
             </div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:12}}>
               <button onClick={()=>setShowMap(false)} style={{background:'#e91e63',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>إغلاق</button>
-              <button onClick={()=>{
-                setForm(f=>({...f,lat:form.lat,lng:form.lng}));
-                setShowMap(false);
-              }} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>تأكيد الموقع</button>
+              <button onClick={()=>setShowMap(false)} style={{background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold'}}>تأكيد الموقع</button>
             </div>
           </div>
         </div>

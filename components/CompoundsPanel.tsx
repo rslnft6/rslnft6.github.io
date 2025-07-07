@@ -13,9 +13,12 @@ interface Compound {
   country?: string;
   description?: string;
   images?: string[];
+  facilities?: string;
+  lat?: number;
+  lng?: number;
 }
 
-const initialForm: Compound = { name: '', logo: '', developer: '', city: '', country: '', description: '', images: [] };
+const initialForm: Compound = { name: '', logo: '', developer: '', city: '', country: '', description: '', images: [], facilities: '', lat: undefined, lng: undefined };
 
 const CompoundsPanel: React.FC = () => {
   const [compounds, setCompounds] = useState<Compound[]>([]);
@@ -104,11 +107,13 @@ const CompoundsPanel: React.FC = () => {
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:16,background:'rgba(255,255,255,0.12)',borderRadius:16}}>
           <thead>
             <tr>
-              <th>الاسم</th>
-              <th>المطور</th>
+              <th style={{color:'#00bcd4'}}>الاسم</th>
+              <th style={{color:'#00bcd4'}}>المطور</th>
               <th>المدينة</th>
-              <th>الدولة</th>
+              <th style={{color:'#00bcd4'}}>الدولة</th>
               <th>الوصف</th>
+              <th style={{color:'#00bcd4'}}>المرافق</th>
+              <th style={{color:'#00bcd4'}}>الموقع</th>
               <th>الصور</th>
               <th>إجراءات</th>
             </tr>
@@ -116,12 +121,14 @@ const CompoundsPanel: React.FC = () => {
           <tbody>
             {compounds.map(c => (
               <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>{c.developer}</td>
+                <td style={{color:'#00bcd4',fontWeight:'bold'}}>{c.name}</td>
+                <td style={{color:'#00bcd4'}}>{c.developer}</td>
                 <td>{c.city}</td>
-                <td>{c.country}</td>
+                <td style={{color:'#00bcd4'}}>{c.country}</td>
                 <td style={{maxWidth:180,whiteSpace:'pre-line'}}>{c.description}</td>
-                <td>{c.images && c.images.length>0 && c.images.map((img:string,i:number)=>(<img key={i} src={img} alt="صورة" style={{width:38,height:38,borderRadius:8,objectFit:'cover',marginLeft:4}} />))}</td>
+                <td style={{maxWidth:120,whiteSpace:'pre-line',color:'#607d8b'}}>{c.facilities}</td>
+                <td>{c.lat && c.lng ? <a href={`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`} target="_blank" rel="noopener noreferrer" style={{color:'#00bcd4',fontWeight:'bold'}}>عرض</a> : '-'}</td>
+                <td>{c.images && c.images.length>0 && c.images.map((img:string,i:number)=>(<img key={i} src={img} alt="صورة" style={{width:38,height:38,borderRadius:8,objectFit:'cover',marginLeft:4,border:'1.5px solid #00bcd4'}} />))}</td>
                 <td>
                   <button className="glass-btn" style={{padding:'4px 12px',fontSize:15}} onClick={()=>handleEdit(c)}><FaEdit /> تعديل</button>
                   <button className="glass-btn" style={{padding:'4px 12px',fontSize:15,background:'#e53935',color:'#fff'}} onClick={()=>handleDelete(c.id!)}><FaTrash /> حذف</button>
@@ -145,6 +152,25 @@ const CompoundsPanel: React.FC = () => {
           <input placeholder="المدينة" value={form.city} onChange={e=>setForm(f=>({...f,city:e.target.value}))} />
           <input placeholder="الدولة" value={form.country} onChange={e=>setForm(f=>({...f,country:e.target.value}))} />
           <textarea placeholder="وصف الكمباوند / المميزات" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{padding:8,borderRadius:8,minWidth:220,minHeight:48,flex:1}} />
+          <textarea placeholder="المرافق (اكتب كل مرفق في سطر)" value={form.facilities||''} onChange={e=>setForm(f=>({...f,facilities:e.target.value}))} style={{padding:8,borderRadius:8,minWidth:220,minHeight:40,flex:1}} />
+          <div style={{margin:'8px 0'}}>
+            <label style={{fontWeight:'bold',color:'#00bcd4'}}>الموقع على الخريطة</label>
+            <button type="button" style={{marginRight:8,background:'#00bcd4',color:'#fff',border:'none',borderRadius:8,padding:'6px 14px',fontWeight:'bold'}} onClick={()=>setShowMap(true)}>تحديد الموقع</button>
+            {form.lat && form.lng && (
+              <span style={{color:'#00bcd4',fontWeight:'bold',marginRight:8}}>الموقع: {form.lat}, {form.lng}</span>
+            )}
+          </div>
+          {showMap && (
+            <div style={{width:'100%',height:340,margin:'12px 0'}}>
+              <MapPicker
+                lat={form.lat || 30.0444}
+                lng={form.lng || 31.2357}
+                onChange={(lat:number,lng:number)=>setForm(f=>({...f,lat,lng}))}
+                height={320}
+              />
+              <button type="button" style={{background:'#e91e63',color:'#fff',border:'none',borderRadius:8,padding:'8px 16px',fontWeight:'bold',marginTop:8}} onClick={()=>setShowMap(false)}>إغلاق الخريطة</button>
+            </div>
+          )}
           {/* رفع صور */}
           <input type="file" accept="image/*" multiple onChange={e=>{
             const files = Array.from(e.target.files||[]);

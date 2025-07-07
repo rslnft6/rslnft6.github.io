@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { db } from '../data/firebase';
 import { doc as fsDoc, onSnapshot } from 'firebase/firestore';
 
@@ -8,7 +8,7 @@ const defaultMessages = [
 
 const MarqueeBar: React.FC = () => {
   const [marquee, setMarquee] = useState({ texts: defaultMessages, speed: 30, color: '#00bcd4', fontSize: 20 });
-  const [index, setIndex] = useState(0);
+  const marqueeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // جلب حي من settings/marquee
@@ -27,20 +27,27 @@ const MarqueeBar: React.FC = () => {
     return () => unsub();
   }, []);
 
+  // إعداد نص موحد للسلايدر
+  const fullText = marquee.texts && marquee.texts.length > 0 ? marquee.texts.join('   •   ') : defaultMessages[0];
+  // سرعة الحركة: كلما زادت القيمة كان أبطأ (px/sec)
+  const speedPxPerSec = Math.max(20, Math.min(200, marquee.speed * 2));
+
+  // حساب مدة الحركة بناءً على طول النص
+  const [duration, setDuration] = useState(20);
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex(i => (i + 1) % (marquee.texts.length || 1));
-    }, marquee.speed * 100);
-    return () => clearInterval(interval);
-  }, [marquee]);
+    if (!marqueeRef.current) return;
+    const textWidth = marqueeRef.current.scrollWidth;
+    setDuration(textWidth / speedPxPerSec);
+  }, [fullText, speedPxPerSec, marquee.fontSize]);
 
   return (
     <div style={{
       width: '100vw',
+      overflow: 'hidden',
       background: 'none',
       color: marquee.color,
       fontSize: marquee.fontSize,
-      textAlign: 'center',
+      textAlign: 'right',
       padding: '8px 0',
       fontWeight: 'bold',
       fontFamily: 'Cairo, Tajawal, Arial',
@@ -51,9 +58,29 @@ const MarqueeBar: React.FC = () => {
       letterSpacing: 1,
       transition: 'all 0.3s',
       boxShadow: 'none',
-      marginBottom: 0
+      marginBottom: 0,
+      direction: 'rtl',
+      userSelect: 'none',
     }}>
-      <span>{marquee.texts[index]}</span>
+      <div
+        ref={marqueeRef}
+        style={{
+          display: 'inline-block',
+          whiteSpace: 'nowrap',
+          willChange: 'transform',
+          animation: `marquee-move ${duration}s linear infinite`,
+        }}
+      >
+        {fullText}
+        <span style={{ margin: '0 32px' }}></span>
+        {fullText}
+      </div>
+      <style>{`
+        @keyframes marquee-move {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 };
