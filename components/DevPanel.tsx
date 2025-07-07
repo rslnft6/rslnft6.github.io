@@ -1,5 +1,4 @@
-npm install -D imagemin imagemin-mozjpeg imagemin-pngquant
-npx imagemin public/images/units/* --out-dir=public/images/units/ -p=imagemin-mozjpeg -p=imagemin-pngquantimport { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 // import { db } from '../data/firebase';
 // import { collection, addDoc, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 console.log('=== DevPanel.tsx Mounted ===');
