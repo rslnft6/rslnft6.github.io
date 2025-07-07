@@ -3,6 +3,7 @@ import { db } from '../data/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { developers } from '../data/developers';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import MapPicker from './MapPicker';
 
 interface Compound {
   id?: string;
@@ -29,6 +30,7 @@ const CompoundsPanel: React.FC = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imagesSaved, setImagesSaved] = useState(true);
+  const [showMap, setShowMap] = useState(false); // إضافة تعريف showMap
 
   // جلب الكمباوندات من فايرستور
   const fetchCompounds = async () => {
@@ -95,6 +97,7 @@ const CompoundsPanel: React.FC = () => {
     setShowForm(false);
     setImageFiles([]);
     setImagePreviews([]);
+    setShowMap(false); // إعادة إغلاق الخريطة عند إعادة تعيين النموذج
   };
 
   return (
